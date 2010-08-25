@@ -1,0 +1,34 @@
+8
+
+dir
+13751
+svn://source/exploration/julien.cayzac/3D
+svn://source
+
+
+
+2008-10-24T13:00:10.845734Z
+13742
+jcayzac
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+1682489a-871b-d94e-a760-072188738025
+
+py2dae
+dir
+
+shp2py
+dir
+

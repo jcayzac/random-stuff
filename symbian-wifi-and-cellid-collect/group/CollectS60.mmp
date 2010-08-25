@@ -1,0 +1,63 @@
+TARGET			CollectS60.exe
+TARGETTYPE		exe
+UID		  0x100039CE 0xEAC37908
+VENDORID 0x00000000
+EPOCSTACKSIZE 0xA000
+EPOCHEAPSIZE 100000 10000000
+
+SOURCEPATH		..\src
+SOURCE			CollectS60.cpp
+SOURCE			CollectS60Application.cpp
+SOURCE			CollectS60AppUi.cpp
+SOURCE			CollectS60Document.cpp
+
+SOURCEPATH		..\data
+
+START RESOURCE	CollectS60.rss
+HEADER
+TARGET CollectS60
+TARGETPATH resource\apps
+END //RESOURCE
+
+START RESOURCE	CollectS60_reg.rss
+TARGET CollectS60_reg
+TARGETPATH 	  \private\10003a3f\apps
+END //RESOURCE
+
+USERINCLUDE	   ..\inc
+USERINCLUDE    ..\help
+
+SYSTEMINCLUDE	 \epoc32\include
+SYSTEMINCLUDE	 \epoc32\include\libc
+
+LIBRARY		   euser.dso
+LIBRARY        estlib.dso
+LIBRARY		   apparc.dso
+LIBRARY		   cone.dso
+LIBRARY        ecom.dso
+LIBRARY		   eikcore.dso
+LIBRARY		   avkon.dso
+LIBRARY		   commonengine.dso
+LIBRARY		   efsrv.dso 
+LIBRARY		   estor.dso
+LIBRARY        aknnotify.dso
+LIBRARY        gdi.dso
+LIBRARY        hlplch.dso
+LIBRARY        eikcoctl.dso
+LIBRARY        eikctl.dso
+LIBRARY        form.dso
+LIBRARY        uiklaf.dso
+LIBRARY        ws32.dso
+LIBRARY        etel3rdparty.dso
+LIBRARY        lbs.dso
+
+LANG SC
+
+COMPRESSTARGET
+#ifdef ENABLE_ABIV2_MODE
+DEBUGGABLE
+#endif
+CAPABILITY	  	  NetworkServices ReadDeviceData Location
+// End of File
+SOURCEPATH ..\src
+SOURCE CollectS60RIL.cpp CollectS60LBS.cpp CollectS60WiFi.cpp CollectS60DataCollector.cpp GeoSignalDB.cpp

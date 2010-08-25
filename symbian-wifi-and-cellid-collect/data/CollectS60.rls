@@ -1,0 +1,24 @@
+/*
+============================================================================
+ Name		: CollectS60.rls
+ Author	  : Mappy
+ Copyright   : Confidential
+ Description : This is a localisation file for CollectS60
+				A .rls file is the one and only place where the logical
+				strings to be localised are defined. 
+============================================================================
+*/
+
+//  LOCALISATION STRINGS
+
+// Caption string for app.
+#define qtn_caption_string "CollectS60"
+
+#define qtn_start "Start"
+#define qtn_exit "Exit"
+
+#define qtn_loc_resource_file_1 "\\resource\\apps\\CollectS60"
+#define qtn_about_dialog_title "About"
+#define qtn_about_dialog_text "CollectS60 Version 1.0.0\n\nAuthor: Mappy\n\nSupport: julien.cayzac@mappy.com\n\n(c) Confidential"
+
+// End of File

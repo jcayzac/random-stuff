@@ -1,0 +1,23 @@
+/*
+ ============================================================================
+ Name		: CollectS60.hrh
+ Author	  : Mappy
+ Copyright   : Confidential
+ Description : This file contains declarations for constants of CollectS60.
+ The file can be included in C++ or resource file.
+ ============================================================================
+ */
+#ifndef __COLLECTS60_HRH__
+#define __COLLECTS60_HRH__
+
+#define _UID3 0xEAC37908
+
+// CollectS60 enumerate command codes
+enum TCollectS60Ids
+	{
+	EStart = 0x6001, // start value must not be 0
+	EHelp,
+	EAbout
+	};
+
+#endif // __COLLECTS60_HRH__
