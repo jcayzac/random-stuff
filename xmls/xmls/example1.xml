@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<?xml-stylesheet type="text/xsl" href="http://www.brainlex.com/XSLT/Directory.xsl"?>
+<!DOCTYPE Directory SYSTEM "http://www.brainlex.com/DTD/Directory.dtd">
+<Directory path="/home/deepmind/Experiments" name="Experiments">
+	<Directory name="xmls">
+		<File name="1992" size="1340" type="message/rfc822" />
+	</Directory>
+</Directory>

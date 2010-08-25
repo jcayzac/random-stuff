@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<?xml-stylesheet type="text/xsl" href="http://www.brainlex.com/XSLT/Directory.xsl"?>
+<!DOCTYPE Directory SYSTEM "http://www.brainlex.com/DTD/Directory.dtd">
+<Directory path="/home/deepmind/Experiments/xmls" name="xmls">
+	<File name="blééééééééé" size="0" />
+	<File name="Directory.xsl" size="2700" />
+	<File name="1992" size="1340" />
+	<File name="xmls.cxx" size="13135" />
+	<File name="example1.xml" size="388" />
+	<File name="example2.xml" size="0" />
+	<File name="Directory.dtd" size="690" />
+	<File name="xmls" size="30774" />
+	<File name="example.xml" size="438" />
+	<File name="Other.xsl" size="1538" />
+</Directory>

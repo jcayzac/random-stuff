@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<?xml-stylesheet type="text/xsl" href="http://www.brainlex.com/XSLT/Directory.xsl"?>
+<!DOCTYPE Directory SYSTEM "http://www.brainlex.com/DTD/Directory.dtd">
+<Directory path="/home/deepmind/Experiments" name="Experiments">
+	<Directory name="Plugins with dependancies">
+		<File name="flags" size="39" type="text/plain; charset=us-ascii" />
+		<File name="plugin.h" size="85" type="text/x-c++; charset=us-ascii" />
+		<File name="interface" size="6621" type="application/x-executable" />
+		<File name="interface.cpp" size="876" type="text/x-c; charset=us-ascii" />
+	</Directory>
+	<Directory name="NaN">
+		<File name="test.o" size="1364" type="application/x-object" />
+		<File name="test.cxx" size="335" type="text/x-c; charset=us-ascii" />
+	</Directory>
+	<Directory name="Scapegen">
+		<File name="ideas" size="2195" type="text/plain" />
+		<Directory name="glew">
+			<Directory name="CVS">
+				<File name="Root" size="58" type="text/plain; charset=us-ascii" />
+				<File name="Repository" size="5" type="text/plain; charset=us-ascii" />
+				<File name="Entries" size="50" type="text/plain; charset=us-ascii" />
+				<File name="Entries.Log" size="77" type="text/plain; charset=us-ascii" />
+			</Directory>
+			<Directory name="bin">
+				<Directory name="CVS">
+					<File name="Root" size="58" type="text/plain; charset=us-ascii" />
+					<File name="Repository" size="9" type="text/plain; charset=us-ascii" />
+					<File name="Entries" size="53" type="text/plain; charset=us-ascii" />
+				</Directory>
+				<File name=".do.not.remove" size="0" type="application/x-empty" />
+			</Directory>
+			<Directory name="doc">
+				<Directory name="CVS">
+					<File name="Root" size="58" type="text/plain; charset=us-ascii" />
+					<File name="Repository" size="9" type="text/plain; charset=us-ascii" />
+					<File name="Entries" size="224" type="text/plain; charset=us-ascii" />
+				</Directory>
+				<File name="README.html" size="12662" type="text/html" />
+				<File name="glew.png" size="9298" type="image/png" />
+				<File name="glx.txt" size="12258" type="text/plain" />
+				<File name="lgpl.txt" size="27017" type="text/plain" />
+				<File name="sgi.txt" size="14458" type="text/plain" />
+			</Directory>
+			<Directory name="include">
+				<Directory name="CVS">
+					<File name="Root" size="58" type="text/plain; charset=us-ascii" />
+					<File name="Repository" size="13" type="text/plain; charset=us-ascii" />
+					<File name="Entries" size="2" type="text/plain; charset=us-ascii" />
+					<File name="Entries.Log" size="11" type="text/plain; charset=us-ascii" />
+				</Directory>
+				<Directory name="GL">
+					<Directory name="CVS">
+						<File name="Root" size="58" type="text/plain; charset=us-ascii" />
+						<File name="Repository" size="16" type="text/plain; charset=us-ascii" />
+						<File name="Entries" size="133" type="text/plain; charset=us-ascii" />
+					</Directory>
+					<File name="glew.h" size="276299" type="text/x-c; charset=us-ascii" />
+					<File name="glxew.h" size="35369" type="text/x-c; charset=us-ascii" />
+					<File name="wglew.h" size="37033" type="text/x-c; charset=us-ascii" />
+				</Directory>
+			</Directory>
+			<Directory name="lib">
+				<Directory name="CVS">
+					<File name="Root" size="58" type="text/plain; charset=us-ascii" />
+					<File name="Repository" size="9" type="text/plain; charset=us-ascii" />
+					<File name="Entries" size="53" type="text/plain; charset=us-ascii" />
+				</Directory>
+				<File name=".do.not.remove" size="0" type="application/x-empty" />
+			</Directory>
+			<Directory name="make">
+				<Directory name="CVS">
+					<File name="Root" size="58" type="text/plain; charset=us-ascii" />
+					<File name="Repository" size="10" type="text/plain; charset=us-ascii" />
+					<File name="Entries" size="2" type="text/plain; charset=us-ascii" />
+					<File name="Entries.Log" size="39" type="text/plain; charset=us-ascii" />
+				</Directory>
+				<Directory name="common">
+					<Directory name="CVS">
+						<File name="Root" size="58" type="text/plain; charset=us-ascii" />
+						<File name="Repository" size="17" type="text/plain; charset=us-ascii" />
+						<File name="Entries" size="100" type="text/plain; charset=us-ascii" />
+					</Directory>
+					<File name="install.bat" size="587" type="text/plain; charset=us-ascii" />
+					<File name="uninstall.bat" size="510" type="text/plain; charset=us-ascii" />
+				</Directory>
+				<Directory name="vc6">
+					<Directory name="CVS">
+						<File name="Root" size="58" type="text/plain; charset=us-ascii" />
+						<File name="Repository" size="14" type="text/plain; charset=us-ascii" />
+						<File name="Entries" size="186" type="text/plain; charset=us-ascii" />
+					</Directory>
+					<File name="glew.dsp" size="3919" type="text/plain" />
+					<File name="glew.dsw" size="807" type="text/plain; charset=us-ascii" />
+					<File name="glew.opt" size="53760" type="application/msword" />
+					<File name="glewinfo.dsp" size="3760" type="text/plain" />
+				</Directory>
+				<Directory name="vc7">
+					<Directory name="CVS">
+						<File name="Root" size="58" type="text/plain; charset=us-ascii" />
+						<File name="Repository" size="14" type="text/plain; charset=us-ascii" />
+						<File name="Entries" size="192" type="text/plain; charset=us-ascii" />
+					</Directory>
+					<File name="glew.sln" size="1422" type="text/plain; charset=us-ascii" />
+					<File name="glew.suo" size="10240" type="application/msword" />
+					<File name="glew.vcproj" size="3886" type="text/plain; charset=us-ascii" />
+					<File name="glewinfo.vcproj" size="3186" type="text/plain; charset=us-ascii" />
+				</Directory>
+			</Directory>
+			<Directory name="src">
+				<Directory name="CVS">
+					<File name="Root" size="58" type="text/plain; charset=us-ascii" />
+					<File name="Repository" size="9" type="text/plain; charset=us-ascii" />
+					<File name="Entries" size="92" type="text/plain; charset=us-ascii" />
+				</Directory>
+				<File name="glew.c" size="180461" type="text/x-c; charset=us-ascii" />
+				<File name="glewinfo.c" size="96107" type="text/x-c; charset=us-ascii" />
+			</Directory>
+			<File name="GNUmakefile" size="1893" type="text/plain" />
+			<File name="glewinfo.txt" size="38693" type="text/plain; charset=us-ascii" />
+		</Directory>
+		<File name="spectral" size="1225" type="text/plain; charset=iso-8859-1" />
+		<File name="musgrave.pdf" size="251166" type="application/pdf" />
+		<File name="gloria" size="900" type="text/x-c; charset=us-ascii" />
+		<File name="mojoworld" size="2096" type="text/x-c; charset=iso-8859-1" />
+		<Directory name="tmp">
+			<File name="infographie_ju_ok.zip" size="173746" type="application/x-zip" />
+			<Directory name="infographie">
+				<File name="box.cpp" size="1930" type="text/x-c; charset=us-ascii" />
+				<File name="box.h" size="157" type="text/x-c; charset=us-ascii" />
+				<File name="color.cpp" size="1718" type="text/x-c; charset=us-ascii" />
+				<File name="color.h" size="26790" type="text/x-c; charset=us-ascii" />
+				<File name="commode.h" size="1835" type="text/x-c++; charset=us-ascii" />
+				<File name="cone.cpp" size="2045" type="text/x-c; charset=iso-8859-1" />
+				<File name="cone.h" size="164" type="text/x-c; charset=us-ascii" />
+				<File name="console.cpp" size="1324" type="text/x-c; charset=us-ascii" />
+				<File name="console.h" size="433" type="text/x-c; charset=us-ascii" />
+				<File name="cylinder.cpp" size="2265" type="text/x-c; charset=us-ascii" />
+				<File name="cylinder.h" size="184" type="text/x-c; charset=us-ascii" />
+				<File name="face.cpp" size="1949" type="text/x-c; charset=us-ascii" />
+				<File name="face.h" size="598" type="text/x-c; charset=us-ascii" />
+				<File name="hemi.cpp" size="1885" type="text/x-c; charset=us-ascii" />
+				<File name="hemi.h" size="236" type="text/x-c; charset=us-ascii" />
+				<File name="hemicube.cpp" size="3417" type="text/x-c; charset=us-ascii" />
+				<File name="hemicube.h" size="1433" type="text/x-c++; charset=us-ascii" />
+				<File name="image.cpp" size="5748" type="text/x-c; charset=iso-8859-1" />
+				<File name="image.h" size="635" type="text/x-c; charset=us-ascii" />
+				<File name="infographie.cpp" size="1111" type="text/x-c; charset=us-ascii" />
+				<File name="infographie.dsp" size="7586" type="text/plain" />
+				<File name="infographie.dsw" size="545" type="text/plain; charset=us-ascii" />
+				<File name="infographie.ncb" size="361472" type="application/octet-stream" />
+				<File name="infographie.opt" size="69632" type="application/msword" />
+				<File name="infographie.plg" size="2537" type="text/html" />
+				<File name="isqrt.h" size="3173" type="text/x-c++; charset=us-ascii" />
+				<File name="main.h" size="52" type="text/plain; charset=us-ascii" />
+				<File name="material.cpp" size="459" type="text/x-c; charset=us-ascii" />
+				<File name="material.h" size="402" type="text/x-c; charset=us-ascii" />
+				<File name="noisysphere.cpp" size="500" type="text/x-c; charset=us-ascii" />
+				<File name="noisysphere.h" size="205" type="text/x-c; charset=us-ascii" />
+				<File name="object.cpp" size="11068" type="text/x-c; charset=iso-8859-1" />
+				<File name="object.h" size="1120" type="text/x-c; charset=us-ascii" />
+				<File name="octree.cpp" size="8205" type="text/x-c; charset=us-ascii" />
+				<File name="octree.h" size="707" type="text/x-c; charset=us-ascii" />
+				<File name="options.cpp" size="2582" type="text/x-c; charset=us-ascii" />
+				<File name="options.h" size="708" type="text/x-c; charset=us-ascii" />
+				<File name="parsedscene.cpp" size="183" type="text/x-c; charset=us-ascii" />
+				<File name="parsedscene.h" size="329" type="text/x-c; charset=us-ascii" />
+				<File name="radiosity.cpp" size="1191" type="text/x-c; charset=us-ascii" />
+				<File name="radiosity.h" size="394" type="text/x-c; charset=us-ascii" />
+				<File name="radpatch.cpp" size="3850" type="text/x-c; charset=us-ascii" />
+				<File name="radpatch.h" size="5591" type="text/x-c; charset=us-ascii" />
+				<File name="ray.cpp" size="3109" type="text/x-c; charset=us-ascii" />
+				<File name="ray.h" size="1023" type="text/x-c; charset=us-ascii" />
+				<File name="scene.a3d" size="2248" type="text/x-c++; charset=us-ascii" />
+				<File name="scene.cpp" size="12416" type="text/x-c; charset=us-ascii" />
+				<File name="scene.h" size="1440" type="text/x-c; charset=us-ascii" />
+				<File name="sceneobject.cpp" size="311" type="text/x-c; charset=us-ascii" />
+				<File name="sceneobject.h" size="397" type="text/x-c; charset=us-ascii" />
+				<File name="sceneparser.cpp" size="14045" type="text/x-c; charset=us-ascii" />
+				<File name="sceneparser.h" size="1054" type="text/x-c; charset=us-ascii" />
+				<File name="screen.cpp" size="3811" type="text/x-c; charset=us-ascii" />
+				<File name="screen.h" size="684" type="text/x-c; charset=us-ascii" />
+				<File name="shader.cpp" size="6841" type="text/x-c; charset=us-ascii" />
+				<File name="shader.h" size="1628" type="text/x-c; charset=us-ascii" />
+				<File name="sphere.cpp" size="2526" type="text/x-c; charset=us-ascii" />
+				<File name="sphere.h" size="206" type="text/x-c; charset=us-ascii" />
+				<File name="tetrahedron.cpp" size="1702" type="text/x-c; charset=us-ascii" />
+				<File name="tetrahedron.h" size="199" type="text/x-c; charset=us-ascii" />
+				<File name="TODO.txt" size="1324" type="text/x-c++; charset=iso-8859-1" />
+				<File name="viewcube.cpp" size="5009" type="text/x-c; charset=us-ascii" />
+				<File name="viewcube.h" size="1511" type="text/x-c; charset=us-ascii" />
+				<File name="zbufferpatch.cpp" size="7561" type="text/x-c; charset=us-ascii" />
+				<File name="zbufferpatch.h" size="726" type="text/x-c++; charset=us-ascii" />
+				<File name="zpixel.h" size="1073" type="text/x-c; charset=us-ascii" />
+			</Directory>
+		</Directory>
+		<File name="test.cxx" size="1707" type="text/x-c; charset=us-ascii" />
+		<File name="test.o" size="844" type="application/x-object" />
+		<File name="test.s" size="815" type="text/x-asm; charset=us-ascii" />
+		<File name="Shade96.pdf" size="160010" type="application/pdf" />
+	</Directory>
+	<File name="Brainlex" size="67" type="text/plain; charset=us-ascii" />
+	<File name="index.php" size="341" type="text/plain" />
+	<Directory name="MetaArt">
+		<File name="tmpw00.ps" size="501137" type="application/postscript" />
+		<File name="pepm99.ps" size="271847" type="application/postscript" />
+		<File name="dagstuhl1998.ps" size="428004" type="application/postscript" />
+		<File name="oo98.ps" size="403573" type="application/postscript" />
+		<File name="techniques.ps" size="581495" type="application/postscript" />
+		<File name="meta-art.ps" size="184532" type="application/postscript" />
+	</Directory>
+	<Directory name="Brain">
+		<File name="TODO" size="514" type="text/plain; charset=iso-8859-1" />
+		<Directory name="include">
+			<File name="BObject" size="109" type="text/x-c; charset=us-ascii" />
+			<File name="Icon.h" size="148" type="text/x-c++; charset=us-ascii" />
+		</Directory>
+	</Directory>
+	<Directory name="Resumption">
+		<File name="BGuardian.h" size="477" type="text/x-c; charset=us-ascii" />
+		<File name="TLeave.h" size="293" type="text/x-c; charset=us-ascii" />
+		<File name="BEnv.cxx" size="325" type="text/x-c; charset=us-ascii" />
+		<File name="BBase.h" size="380" type="text/x-c; charset=us-ascii" />
+		<File name="test.cxx" size="305" type="text/x-c; charset=us-ascii" />
+		<File name="BEnv.h" size="336" type="text/x-c++; charset=us-ascii" />
+		<File name="BDefs.h" size="936" type="text/x-c; charset=us-ascii" />
+		<File name="test" size="19609" type="application/x-executable" />
+		<File name="BBase.cxx" size="874" type="text/x-c; charset=us-ascii" />
+	</Directory>
+	<Directory name="WebMail">
+		<File name="specs" size="870" type="text/plain; charset=iso-8859-1" />
+	</Directory>
+	<File name="dissertation.pdf" size="574669" type="application/pdf" />
+	<Directory name="SIMD">
+		<File name="test.cxx" size="624" type="text/x-c; charset=us-ascii" />
+		<File name="test" size="7461" type="application/x-executable" />
+	</Directory>
+	<File name="test" size="84" type="text/plain; charset=us-ascii" />
+	<File name="pxWorld.tar.bz2" size="578372" type="application/octet-stream" />
+	<Directory name="pxWorld">
+		<File name="autogen" size="81" type="application/x-shellscript" />
+		<File name="configure.in" size="480" type="text/plain; charset=us-ascii" />
+		<File name="skel.tar.bz2" size="5604" type="application/octet-stream" />
+		<File name="wrapper.tar.bz2" size="3002" type="application/octet-stream" />
+		<File name="autoclear" size="400" type="application/x-shellscript" />
+		<File name="Makefile.am" size="89" type="text/plain; charset=us-ascii" />
+		<Directory name="src">
+			<Directory name="pxSys">
+				<File name="Thread.cpp" size="1165" type="text/x-c; charset=us-ascii" />
+				<File name="test.cpp" size="1109" type="text/x-c; charset=us-ascii" />
+				<File name="Makefile.am" size="263" type="text/plain; charset=us-ascii" />
+				<File name="Mutex.cpp" size="1314" type="text/x-c; charset=us-ascii" />
+				<File name="ClientPlatform.cpp" size="3177" type="text/x-c; charset=us-ascii" />
+				<File name="Timer.cpp" size="785" type="text/x-c; charset=us-ascii" />
+				<Directory name=".deps">
+					<File name="ClientPlatform.P" size="11006" type="text/plain; charset=us-ascii" />
+					<File name="Timer.P" size="1221" type="text/plain; charset=us-ascii" />
+					<File name="Thread.P" size="1350" type="text/plain; charset=us-ascii" />
+					<File name="PluginLoader.P" size="7590" type="text/plain; charset=us-ascii" />
+					<File name="Mutex.P" size="1061" type="text/plain; charset=us-ascii" />
+					<File name="InputStream.P" size="7481" type="text/plain; charset=us-ascii" />
+					<File name="FileInputStream.P" size="11001" type="text/plain; charset=us-ascii" />
+				</Directory>
+				<File name="InputStream.cpp" size="1451" type="text/x-c; charset=us-ascii" />
+				<File name="FileInputStream.cpp" size="1035" type="text/x-c; charset=us-ascii" />
+				<File name="PluginLoader.cpp" size="654" type="text/x-c; charset=us-ascii" />
+			</Directory>
+			<Directory name="Test">
+				<File name="Makefile.am" size="372" type="text/plain; charset=us-ascii" />
+				<File name="TestPlugin.cpp" size="478" type="text/x-c; charset=us-ascii" />
+				<File name="DoPlugin.h" size="351" type="text/x-c; charset=us-ascii" />
+				<File name="test.cpp" size="3743" type="text/x-c; charset=us-ascii" />
+				<Directory name=".deps">
+					<File name="TestPlugin.P" size="10322" type="text/plain; charset=us-ascii" />
+					<File name="test.P" size="13020" type="text/plain; charset=us-ascii" />
+				</Directory>
+				<File name="testplugin.p" size="236903" type="application/x-sharedlib" />
+				<File name="TestPlugin.p" size="236903" type="application/x-sharedlib" />
+				<File name="test" size="599753" type="application/x-executable" />
+			</Directory>
+			<Directory name="pxGfx">
+				<File name="Makefile.am" size="136" type="text/plain; charset=us-ascii" />
+				<File name="ps_tokens.cpp" size="47500" type="text/x-c; charset=us-ascii" />
+				<File name="Driver.cpp" size="10225" type="text/x-c; charset=us-ascii" />
+				<Directory name=".deps">
+					<File name="Driver.P" size="12786" type="text/plain; charset=us-ascii" />
+				</Directory>
+				<File name="ps_parser.y" size="2988" type="text/x-c; charset=us-ascii" />
+				<File name="PixelShader.cpp" size="21968" type="text/x-c; charset=us-ascii" />
+				<File name="ps_parser.cpp" size="35652" type="text/x-c; charset=us-ascii" />
+				<File name="ps_parser.hpp" size="490" type="text/x-c; charset=us-ascii" />
+				<File name="ps_tokens.l" size="1922" type="text/x-c; charset=us-ascii" />
+				<File name="ps_externs.hpp" size="126" type="text/x-c; charset=us-ascii" />
+			</Directory>
+			<File name="Frustum.cpp" size="11214" type="text/x-c; charset=us-ascii" />
+			<File name="RenderVisitor.cpp" size="1541" type="text/x-c; charset=us-ascii" />
+			<File name="Driver.h" size="343" type="text/x-c; charset=us-ascii" />
+			<File name="Entity.h" size="154" type="text/x-c++; charset=us-ascii" />
+			<File name="Frustum.h" size="507" type="text/x-c++; charset=us-ascii" />
+			<File name="RenderVisitor.h" size="534" type="text/x-c; charset=us-ascii" />
+			<File name="Scene.h" size="232" type="text/x-c++; charset=us-ascii" />
+			<Directory name="px3D">
+				<File name="Makefile.am" size="156" type="text/plain; charset=us-ascii" />
+				<File name="VertexBuffer.cpp" size="1465" type="text/x-c; charset=us-ascii" />
+				<File name="IndexBuffer.cpp" size="831" type="text/x-c; charset=us-ascii" />
+			</Directory>
+			<File name="ShadowVolume.program" size="1492" type="text/x-c++; charset=us-ascii" />
+			<File name="Makefile.am" size="106" type="text/plain; charset=us-ascii" />
+			<Directory name="pxMath">
+				<File name="perlin.cpp" size="957" type="text/x-c; charset=us-ascii" />
+				<File name="isqrt.cpp" size="948" type="text/x-c; charset=us-ascii" />
+				<File name="sqrt.cpp" size="765" type="text/x-c; charset=us-ascii" />
+				<File name="Fast.cpp" size="203" type="text/x-c; charset=us-ascii" />
+				<File name="Makefile.am" size="174" type="text/plain; charset=us-ascii" />
+			</Directory>
+		</Directory>
+		<Directory name="include">
+			<Directory name="pxSys">
+				<File name="ClientPlatform.h" size="1171" type="text/x-c; charset=us-ascii" />
+				<File name="FileInputStream.h" size="417" type="text/x-c; charset=us-ascii" />
+				<File name="InputStream.h" size="729" type="text/x-c; charset=us-ascii" />
+				<File name="Mutex.h" size="1183" type="text/x-c; charset=us-ascii" />
+				<File name="NonCopyable.h" size="221" type="text/x-c++; charset=us-ascii" />
+				<File name="Plugin.h" size="747" type="text/x-c++; charset=us-ascii" />
+				<File name="PluginLoader.h" size="357" type="text/x-c++; charset=us-ascii" />
+				<File name="Referenced.h" size="3314" type="text/x-c; charset=us-ascii" />
+				<File name="Thread.h" size="629" type="text/x-c++; charset=us-ascii" />
+				<File name="Timer.h" size="525" type="text/x-c; charset=us-ascii" />
+				<File name="Types.h" size="156" type="text/x-c; charset=us-ascii" />
+			</Directory>
+			<Directory name="pxGfx">
+				<File name="Driver.h" size="1567" type="text/x-c++; charset=us-ascii" />
+				<File name="PixelShader.h" size="605" type="text/x-c; charset=us-ascii" />
+			</Directory>
+			<Directory name="px3D">
+				<File name="VertexBuffer.h" size="739" type="text/x-c; charset=us-ascii" />
+				<File name="IndexBuffer.h" size="355" type="text/x-c; charset=us-ascii" />
+				<File name="Vector.h" size="7612" type="text/x-c; charset=us-ascii" />
+				<File name="Mesh.h" size="1999" type="text/x-c++; charset=us-ascii" />
+				<File name="Matrix.h" size="17161" type="text/x-c++; charset=us-ascii" />
+				<File name="Material.h" size="241" type="text/x-c++; charset=us-ascii" />
+			</Directory>
+			<Directory name="pxMath">
+				<File name="inv.h" size="332" type="text/x-c; charset=us-ascii" />
+				<File name="isqrt.h" size="1682" type="text/x-c; charset=us-ascii" />
+				<File name="sqrt.h" size="1184" type="text/x-c; charset=us-ascii" />
+				<File name="random.h" size="2373" type="text/x-c; charset=us-ascii" />
+				<File name="perlin.h" size="3940" type="text/x-c; charset=us-ascii" />
+				<File name="Fast.h" size="403" type="text/x-c; charset=us-ascii" />
+			</Directory>
+		</Directory>
+		<File name="stone.bmp" size="49206" type="image/bmp" />
+		<Directory name=".xvpics">
+			<File name="stone.bmp" size="3669" type="text/plain; charset=unknown" />
+		</Directory>
+		<File name="missing" size="6472" type="application/x-shellscript" />
+		<Directory name="tools">
+			<File name="libNvTriStrip.tar.bz2" size="15329" type="application/octet-stream" />
+			<Directory name="ASEtoPXM">
+				<File name="Makefile.am" size="211" type="text/plain; charset=us-ascii" />
+				<File name="main.cpp" size="10584" type="text/x-c; charset=us-ascii" />
+				<Directory name=".deps">
+					<File name="main.pp" size="6167" type="text/plain; charset=us-ascii" />
+					<File name="main.P" size="12002" type="text/plain; charset=us-ascii" />
+				</Directory>
+				<File name="ASEtoPXM" size="528748" type="application/x-executable" />
+				<File name="Asciitok.h" size="12465" type="text/x-c++; charset=us-ascii" />
+				<File name="test.ase" size="5547" type="text/plain; charset=us-ascii" />
+			</Directory>
+			<File name="Makefile.am" size="54" type="text/plain; charset=us-ascii" />
+			<Directory name="PXS">
+				<File name="pxs" size="898" type="text/x-c++; charset=iso-8859-1" />
+				<File name="pxs.mieux" size="862" type="text/x-c++; charset=iso-8859-1" />
+				<File name="shade.lex" size="1032" type="text/x-c; charset=us-ascii" />
+				<File name="pxs.l" size="1375" type="text/x-c; charset=us-ascii" />
+				<File name=".pxs.y.swp" size="24576" type="application/octet-stream" />
+				<File name="lex.yy.c" size="42329" type="text/x-c; charset=us-ascii" />
+				<File name="pxs.y" size="6436" type="text/x-c; charset=us-ascii" />
+				<File name="pxs.tab.c" size="42348" type="text/x-c; charset=us-ascii" />
+				<File name="pxs.tab.h" size="1549" type="text/x-c; charset=us-ascii" />
+			</Directory>
+			<File name="Strips.zip" size="40381" type="application/x-zip" />
+			<Directory name="Shade">
+				<File name="Shader.h" size="1220" type="text/x-c; charset=us-ascii" />
+				<File name="shade.lex" size="1032" type="text/x-c; charset=us-ascii" />
+				<File name="shade.y" size="3370" type="text/x-c; charset=us-ascii" />
+				<File name="test.pxs" size="173" type="text/x-c; charset=us-ascii" />
+				<File name="lex.yy.c" size="36502" type="text/x-c; charset=us-ascii" />
+				<File name="shade.output" size="11570" type="text/x-c; charset=us-ascii" />
+				<File name="shade.tab.c" size="35405" type="text/x-c; charset=us-ascii" />
+				<File name="shade.tab.h" size="608" type="text/x-c; charset=us-ascii" />
+				<File name="shade" size="30454" type="application/x-executable" />
+				<Directory name="lburg">
+					<File name="gram.c" size="18451" type="text/x-c; charset=us-ascii" />
+					<File name="gram.y" size="4251" type="text/x-c; charset=us-ascii" />
+					<File name="lburg.c" size="17913" type="text/x-c; charset=us-ascii" />
+					<File name="lburg.h" size="2073" type="text/x-c; charset=us-ascii" />
+					<Directory name="man1">
+						<File name="lburg.1" size="4784" type="text/troff; charset=us-ascii" />
+					</Directory>
+					<File name="lburg" size="36541" type="application/x-executable" />
+					<File name="x86.c" size="166463" type="text/x-c; charset=us-ascii" />
+					<File name="c.h" size="16727" type="text/x-c; charset=us-ascii" />
+				</Directory>
+				<File name="stanford.lex" size="272" type="text/x-c; charset=us-ascii" />
+				<File name="stanford" size="22713" type="application/x-executable" />
+				<File name="test.shader" size="115" type="text/x-c++; charset=us-ascii" />
+			</Directory>
+		</Directory>
+		<File name="install-sh" size="5598" type="application/x-shellscript" />
+		<File name="mkinstalldirs" size="722" type="application/x-shellscript" />
+	</Directory>
+	<Directory name="office52">
+		<Directory name="user">
+			<Directory name="work">
+				<File name="pixiworld.sdw" size="41984" type="application/msword" />
+			</Directory>
+		</Directory>
+	</Directory>
+	<Directory name=".galeon">
+		<File name="bookmarks.xml" size="10357" type="text/plain" />
+		<File name="bookmarks.xml.0" size="9675" type="text/plain" />
+		<File name="bookmarks.xml.1" size="8483" type="text/plain" />
+		<File name="bookmarks.xml.2" size="7634" type="text/plain" />
+	</Directory>
+	<Directory name="memmark">
+		<File name="README" size="388" type="text/plain" />
+		<File name="memcpy.h" size="1482" type="text/x-c; charset=us-ascii" />
+		<File name="xmmintrin.h" size="60219" type="text/x-c; charset=us-ascii" />
+		<File name="compile" size="1078" type="application/x-shellscript" />
+		<File name="memmark.cxx" size="12088" type="text/x-c; charset=iso-8859-1" />
+		<File name="memmark" size="27350" type="application/x-executable" />
+		<File name="memmark.txt" size="9071" type="text/plain; charset=us-ascii" />
+		<File name="specs" size="6841" type="text/plain; charset=us-ascii" />
+		<File name="TODO" size="614" type="text/plain; charset=iso-8859-1" />
+		<File name="MemoryCopy.cpp" size="7664" type="text/x-c++; charset=us-ascii" />
+		<File name="memcpy.c" size="17502" type="text/x-c; charset=us-ascii" />
+	</Directory>
+	<File name="AthlonOptim.pdf" size="1670053" type="application/pdf" />
+	<Directory name="sqrt">
+		<File name="test.cxx" size="3299" type="text/x-c; charset=us-ascii" />
+		<File name="test.o" size="1568" type="application/x-object" />
+		<File name="test.s" size="6014" type="text/x-asm; charset=us-ascii" />
+		<File name="isqrt.h" size="3104" type="text/x-c++; charset=us-ascii" />
+		<File name="specs" size="6841" type="text/plain; charset=us-ascii" />
+		<File name="test" size="8645" type="application/x-executable" />
+	</Directory>
+	<File name="memmark.zip" size="4432" type="application/x-zip" />
+	<File name="memmark.tar.bz2" size="4107" type="application/octet-stream" />
+	<Directory name="gccmacros">
+		<File name="gccmacros.cxx" size="611" type="text/x-c; charset=us-ascii" />
+		<File name="gccmacros" size="7155" type="application/x-executable" />
+	</Directory>
+	<Directory name="FAST">
+		<File name="test" size="25493" type="application/x-executable" />
+		<File name="fast_ia32_gnu.cxx" size="3555" type="text/x-c; charset=us-ascii" />
+		<File name="fast_ia32_gnu.o" size="3088" type="application/x-object" />
+		<File name="test.s" size="110197" type="text/x-asm; charset=us-ascii" />
+		<File name="test.cxx" size="830" type="text/x-c; charset=us-ascii" />
+		<Directory name="include">
+			<Directory name="fast">
+				<Directory name="compilers">
+					<File name="bc.h" size="162" type="text/x-c++; charset=us-ascii" />
+					<File name="como.h" size="155" type="text/x-c++; charset=us-ascii" />
+					<File name="cw.h" size="168" type="text/x-c++; charset=us-ascii" />
+					<File name="icc.h" size="151" type="text/x-c++; charset=us-ascii" />
+					<File name="kcc.h" size="140" type="text/x-c++; charset=us-ascii" />
+					<File name="msvc.h" size="760" type="text/x-c++; charset=us-ascii" />
+					<File name="gcc.h" size="351" type="text/x-c; charset=us-ascii" />
+				</Directory>
+				<File name="fast.h" size="2103" type="text/x-c; charset=us-ascii" />
+				<File name="arch.h" size="2496" type="text/x-c++; charset=us-ascii" />
+			</Directory>
+		</Directory>
+		<File name="fast.o" size="3080" type="application/x-object" />
+		<File name="memcopy_3dnow.asm" size="1416" type="text/x-c++; charset=us-ascii" />
+		<File name="TODO" size="434" type="text/x-c++; charset=us-ascii" />
+	</Directory>
+	<Directory name="Speedstep">
+		<File name="speedstep.cxx" size="853" type="text/x-c; charset=us-ascii" />
+		<File name="speedstep" size="7772" type="application/x-executable" />
+	</Directory>
+	<Directory name="xmls">
+		<File name="blééééééééé" size="0" type="application/x-empty" />
+		<File name="Directory.xsl" size="2700" type="text/plain; charset=us-ascii" />
+		<File name="1992" size="1340" type="message/rfc822" />
+		<File name="xmls.cxx" size="13135" type="text/x-c; charset=utf-8" />
+		<File name="example1.xml" size="388" type="text/plain; charset=us-ascii" />
+		<File name="example2.xml" size="689" type="text/plain; charset=utf-8" />
+		<File name="example3.xml" size="0" type="application/x-empty" />
+		<File name="Directory.dtd" size="690" type="text/plain; charset=us-ascii" />
+		<File name="xmls" size="30774" type="application/x-executable" />
+		<File name="example.xml" size="438" type="text/plain; charset=us-ascii" />
+		<File name="Other.xsl" size="1538" type="text/plain; charset=us-ascii" />
+	</Directory>
+</Directory>

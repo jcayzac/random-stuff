@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<?xml-stylesheet type="text/xsl" href="http://www.brainlex.com/XSLT/Directory.xsl"?>
+<!DOCTYPE Directory SYSTEM "http://www.brainlex.com/DTD/Directory.dtd">
+<Directory path="/home/deepmind/Experiments/xmls" name="xmls">
+	<Directory name="#">
+		<Directory name="&amp;">
+			<File name="toto.mp3" size="0" />
+			<Directory name="titi.mp3" />
+		</Directory>
+	</Directory>
+</Directory>

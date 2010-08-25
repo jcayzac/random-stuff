@@ -1,0 +1,19 @@
+<!ELEMENT Directory (Directory*,File*,Link*,Socket*,CharacterDevice*,BlockDevice*,Fifo*)>
+	<!ATTLIST Directory path CDATA #IMPLIED>
+	<!ATTLIST Directory name CDATA #REQUIRED>
+<!ELEMENT File EMPTY>
+	<!ATTLIST File name CDATA #REQUIRED>
+	<!ATTLIST File size CDATA #REQUIRED>
+	<!ATTLIST File type CDATA #IMPLIED>
+<!ELEMENT Link EMPTY>
+	<!ATTLIST Link name CDATA #REQUIRED>
+	<!ATTLIST Link target CDATA #IMPLIED>
+<!ELEMENT Socket EMPTY>
+	<!ATTLIST Socket name CDATA #REQUIRED>
+<!ELEMENT CharacterDevice EMPTY>
+	<!ATTLIST CharacterDevice name CDATA #REQUIRED>
+<!ELEMENT BlockDevice EMPTY>
+	<!ATTLIST BlockDevice name CDATA #REQUIRED>
+<!ELEMENT Fifo EMPTY>
+	<!ATTLIST Fifo name CDATA #REQUIRED>
+
