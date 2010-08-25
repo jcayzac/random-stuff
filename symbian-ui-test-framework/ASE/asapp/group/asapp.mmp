@@ -1,0 +1,35 @@
+//
+// asapp.mmp
+//
+
+TARGET			asapp.app
+TARGETTYPE		APP
+UID				0x100039ce	0x1000b00f
+TARGETPATH		\System\Apps\asapp
+
+SYSTEMINCLUDE	\epoc32\include \epoc32\include\libc
+USERINCLUDE		..\inc
+USERINCLUDE		..\..\simkin\src
+
+SOURCEPATH		..\group
+RESOURCE		asapp.rss
+
+SOURCEPATH		..\src
+
+SOURCE			asapp.cpp
+SOURCE			asappui.cpp
+SOURCE			asappview.cpp
+
+LIBRARY			aseng.lib
+LIBRARY			estlib.lib
+LIBRARY			euser.lib
+LIBRARY			apparc.lib
+LIBRARY			cone.lib
+LIBRARY			eikcore.lib
+LIBRARY			egul.lib
+LIBRARY			eikcoctl.lib
+LIBRARY			ws32.lib
+LIBRARY			eikfile.lib
+
+SOURCEPATH		..\srcdata
+AIF				asapp.aif ..\srcdata\ asapp.rss c8 ase_icon.bmp ase_mask.bmp ase_icon_list.bmp ase_icon_list_mask.bmp

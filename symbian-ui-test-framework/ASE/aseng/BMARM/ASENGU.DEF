@@ -1,0 +1,9 @@
+EXPORTS
+	NewL__11CAseEngine2 @ 1 NONAME R3UNUSED ; CAseEngine2::NewL(void)
+	RunScriptL__11CAseEngine2RC7TDesC16Q211CAseEngine211TScriptMode @ 2 NONAME R3UNUSED ; CAseEngine2::RunScriptL(TDesC16 const &, CAseEngine2::TScriptMode)
+	"_._11CAseEngine2" @ 3 NONAME R3UNUSED ; CAseEngine2::~CAseEngine2(void)
+	Break__11CAseEngine2 @ 4 NONAME R3UNUSED ; CAseEngine2::Break(void)
+	IsRunning__C11CAseEngine2 @ 5 NONAME R3UNUSED ; CAseEngine2::IsRunning(void) const
+	AutoBootL__11CAseEngine2 @ 6 NONAME R3UNUSED ; CAseEngine2::AutoBootL(void)
+	SetObserver__11CAseEngine2P12MAseObserver @ 7 NONAME R3UNUSED ; CAseEngine2::SetObserver(MAseObserver *)
+

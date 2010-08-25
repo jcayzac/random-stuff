@@ -1,0 +1,353 @@
+/*
+
+* ============================================================================
+
+*  Name     : CalypsoStart.hrh
+
+*  Part of  : CalypsoStart
+
+*  Origin   : Calypso
+
+*  Created  : Mon Feb 05 11:48:54 2001 by jolahti
+
+*  Description:
+
+*     This file contains declarations for resources of CalypsoStart and
+
+*     CalypsoStartClient.
+
+*     The file can be included in C++ or resource file.
+
+*
+
+*  Version  :
+
+*   %version: 4 %, %date_modified: Mon Jun 09 15:07:45 2003 % by %derived_by: pekallio % 
+
+*  Copyright (c) 2000 Nokia Mobile Phones. All rights reserved.
+
+*  ---------------------------------------------------------------------------
+
+*  Version history:
+
+*  Template version: 1.0, 28.2.2000 by maparnan
+
+*  <ccm_history>
+
+*
+
+*  Version: 13, Tue Jun 26 2001 by maparnan
+
+*  -State sync. support added
+
+*  -Critical block support added for fatal error handling
+
+*
+
+*  Version: 16, Thu Sep 13 08:47:58 2001 by maparnan
+
+*
+
+*  Version: 18, Sun Feb 17 09:49:37 2002 by maparnan
+
+*  Code inspection changes.
+
+*
+
+*  Version: 19, Thu Mar 14 14:39:13 2002 by maparnan
+
+*  Added Random Server and Schedule server types
+
+*
+
+*  </ccm_history>
+
+* ============================================================================
+
+*/
+
+#ifndef __STARTER_HRH__
+
+#define __STARTER_HRH__
+
+
+
+#include <internal/StartupReasons.h>
+
+
+
+// Modes for making possible "SW-Reset" without rebooting the device
+
+// (fast boot). Used in SwitchMode method of RCalypsoStartSession class.
+
+// Equals to starting the startup list identified by (ENormal,<TSWMode>)-
+
+// startup reasons.
+
+enum TSWMode
+
+	{
+
+    // Null value, matches to SysStartup::TSWStartupReason::ESWNone !
+
+    ESSRNull = 100, 
+
+
+
+    // Range (100..149) is reserved for SysStartup::TSWStartupReason
+
+
+
+    // Range (200..249) is reserved for CalypsoStart
+
+    ESSRAlarmToNormal    = 201,
+
+    ESSRChargingToNormal = 202,
+
+    ESSRChargingToAlarm  = 203, // reserved for future use
+
+    ESSRAlarmToCharging  = 204, // reserved for future use
+
+
+
+    // For error handling (special list activated upon error within
+
+    // critical block)
+
+    ESSRFatalStartupError = 210,
+
+
+
+    // Range (250..) reserved for module tests 
+
+    ESSRTest1 = 250
+
+
+
+	};
+
+
+
+
+
+// Item types for entries in the startup list
+
+// These are for Calypso Starter only !
+
+//
+
+enum TItemType
+
+	{
+
+
+
+    // Null value
+
+    ENoneType = 0,
+
+
+
+	// Normal types:
+
+	// Continue startup after the set delay.
+
+	EExecutableType = 1,
+
+	EApplicationType = 2,
+
+
+
+	// Wait first for exit before continuing startup.
+
+    // For example, a Startup application could be such
+
+    // if no SW based state sybchronisation is used.
+
+	EWaitExitApplicationType = 3,  
+
+	EWaitExitExecutableType = 4,
+
+
+
+	// Splash screen (artificial type)
+
+	ESplashType = 5,
+
+	//Exit Slash Screen (artificial type)
+
+    //The Spash can also be removed via RCalypsoStartSession class.
+
+	EExitSplashType = 6,
+
+
+
+	// Started initially into background.
+
+	EBackgroundApplicationType = 7,
+
+
+
+    // --- Range 9..19: State synchronisation items -----
+
+
+
+	// Item for defining state synchronisation data which
+
+    // is activated by ESyncroniseStates-item.
+
+    // Data is one of SysStartup::TSWState enums.
+
+	EStateSyncItem = 9,
+
+
+
+	// Start a critical block.
+
+    // Startup errors within critical block are fatal 
+
+    // and cause switching to ESSRFatalStartupError startup list.
+
+	EBeginCriticalBlock = 10,
+
+
+
+	// End a critical block.
+
+    // Startup errors outside critical block are ignored.
+
+	EEndCriticalBlock = 11,
+
+
+
+	// End collecting state synchronsation items and
+
+    // start synchronisation.
+
+    // After synchronisation is done the sync. items
+
+    // are cleared automatically.
+
+	ESyncroniseStates = 12,
+
+
+
+	// Set wanted EPOC SW state (one of SysStartup::TSWState enums)
+
+	ESetState = 13,
+
+
+
+    // --- Range 20..: other items -----
+
+
+
+	// Enable Fast Swap Window (artificial type)
+
+	EEnableFswType = 20,
+
+
+
+	// Start Symbian OS Schedule Server
+
+	EScheduleServerType = 21,
+
+
+
+	// Start Symbian OS UIKON Server
+
+	EUikonServerType = 22,
+
+
+
+	// Start Symbian OS Random Server
+
+	ERandomServerType = 23
+
+
+
+	};
+
+
+
+// Few words about state synchronisation:
+
+// -------------------------------------
+
+// The idea of this is to make Starter support two phased startup
+
+// where the fast phase 1 contains absolutelly minimal applications (Phone, SysAp,
+
+// Startup) and the phase 2 contains the rest of apps/exes.
+
+// The set of EStateSyncItem-items from a first item up to the 
+
+// ESyncroniseStates-item create one synchronisation block with AND
+
+// condition (item1 AND item2 ...).  When the collected block is activated by
+
+// ESyncroniseStates-item,  the starter waits for all the set state
+
+// notifications before it continues startup sequence. 
+
+// After the synchronisation is done, the
+
+// block is discarded and another synchronisation block may follow.
+
+//
+
+
+
+
+
+// Few words about critical blocks:
+
+// -------------------------------
+
+// The purpose of this is to make certain applications so critical to
+
+// the system that startup failure causes "Contact Service" kind of message
+
+// displayed by Startup application. Items outside of the
+
+// block do not cause error in startup phase, but cause error
+
+// later when attempting to use a service.
+
+
+
+// Values for supported monitoring (watching) of started items
+
+// outside crirical block. These are applied to set up watchers
+
+// to try recovering from item's death in normal running.
+
+// So if item dies then:
+
+enum TMonitoringMode
+
+	{
+
+	EMonNone = 0,       // do nothing (no monitoring)
+
+	EMonRestart = 1,    // retry up to the defined max. times,
+
+                        // after that just give up
+
+	EMonRestartPanic = 2,  // retry up to the defined max. times,
+
+                        // after that apply EMonPanic
+
+	EMonRestartReset = 3,  // retry up to the defined max. times,
+
+                        // after that apply EMonReset
+
+	EMonPanic = 10, // panic CalypsoStart
+
+	EMonReset = 11 //  reset SW
+
+    };
+
+
+
+#endif  // __STARTER_HRH__

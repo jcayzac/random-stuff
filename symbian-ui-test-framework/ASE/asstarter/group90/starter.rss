@@ -1,0 +1,598 @@
+/*
+* ============================================================================
+*  Name     : Starter.rss
+*  Part of  : Starter Server / WINS
+*  Origin   : Calypso
+*  Created  : Wed Oct 11 11:53:52 2000
+*  Description:
+*     This file contains App SW level resources for starting up
+*     the device in the various startup modes. The resource is read by
+*     Starter.exe. The resource forms a simple "scripting language".
+*     The idea to let customise startup by
+*     configuring the resource only.
+*
+*     The modes are described below in uppercase:
+*     -------------------------------------------
+*     When device is off:
+*      - TEST (R&D test mode)
+*      - ALARM (Clock Alarm occured)
+*      - CHARGING (Battery charger inserted)
+*      - NORMAL (normal startup with full functionality)
+*
+*     When device is on in Alarm or Charging modes:
+*      - SWITCH-TO-NORMAL
+*
+*     When fatal error detected upon startup:
+*      - FATAL-ERROR i.e. "Contact Service" activated.
+*
+*    Each mode refers to a list of Symbian OS applications or executables
+*    items which need to be started in each mode. 
+*    Each list forms the order of items started.
+*    In addition to applications/executables a list can contain special items
+*    which support the defined App SW state synchronisation policy or otherwise
+*    offer additional functionality.
+*
+*    NOTE ! For HW Emulator there is own .rss file.
+*
+*  Version  :
+*   %version: tr1s90#15 %, %date_modified: Thu Aug 19 12:13:07 2004 % by %derived_by: pekallio % 
+*  Copyright (c) 2000 Nokia Mobile Phones. All rights reserved.
+*  ---------------------------------------------------------------------------
+*  Version history:
+*  Template version: 1.0, 28.2.2000 by maparnan
+*  <ccm_history>
+*
+*  Version: 25, 4 Jun 2001 by maparnan
+*  -The decarations moved to .RH file
+*  -NCNList added (after discussing with Tony)
+*  
+*  </ccm_history>
+* ============================================================================
+*/
+
+// RESOURCE IDENTIFIER
+// Since not being an application resource, this resource file does not contain
+// any identifier.
+
+// INCLUDES
+#include <eikon.rh>
+#include "Starter.hrh"
+#include "Starter.rh"
+
+// DEFINITIONS
+
+#define FATAL_ERROR_ENABLED
+
+// Splashscreen (is a DLL in WINS)
+#define splash_exe_name "Z:\\SYSTEM\\PROGRAMS\\SPLASHSCREEN.DLL"
+
+// Applications names
+#define startup_app "Z:\\System\\Apps\\Wakeup\\Wakeup.app"
+#define sys_app "Z:\\System\\Apps\\SysAp\\SysAp.app"
+//#define phone_app "Z:\\System\\Apps\\PhoneApp\\PhoneApp.app"
+//#define scrsaver_app "Z:\\System\\Apps\\PMode\\PMode.app"
+#define default_shell_app "z:\\system\\apps\\shell\\shell.app"
+#define profiles_app "z:\\system\\apps\\profilesui\\profilesui.app" //XS
+#define asapp "z:\\System\\Apps\\ASAPP\\ASAPP.app"
+
+// Executables names
+#define sae_server "Z:\\System\\Programs\\Sae.dll"
+#define watcher_server "Z:\\System\\Libs\\Watcher.dll"
+// These should be in \system\programs directory
+#define sat_server "Z:\\System\\programs\\Satserver.dll"
+#define cbs_server "Z:\\System\\programs\\CbsServer.dll"
+#define bt_server "Z:\\System\\programs\\BtServer.dll"
+#define faxmodem "Z:\\System\\programs\\FaxModem.dll"
+#define nitz_server "Z:\\System\\programs\\clknitzmdls.dll"
+// In WINS Random server started by hard-coded name
+#define random_server "N/A"
+
+
+// Additions for Bree 1.0
+#define security_server "z:\\system\\programs\\securityserver.dll"  //XS
+#define secui_server "z:\\system\\programs\\secui.dll"  //XS
+// #define wallet_server "Z:\\System\\Libs\\WalletServer.dll" //XS
+#define audio_policy_server "z:\\system\\libs\\MMFAudioPolicy.dll"  //XS
+#define usb_watcher "z:\\system\\programs\\USBWatcher.dll"   //XS
+#define accessory_app "z:\\system\\apps\\accessoryap\\accessoryap.app"  //XS
+// GPRS Logger changed in Bree 1.1 to DataConnectionLogger
+//#define gprs_logger "z:\\system\\programs\\gprs_logger.dll" //XS
+#define data_logger "z:\\system\\programs\\DataConnectionLogger.dll" //XS
+#define instrec "z:\\system\\programs\\instrec.dll" //XS
+
+#define localeinternalizer "z:\\system\\programs\\localeinternalizer.dll"
+#define SMSCDetector "Z:\\System\\Programs\\snumdetstarter.dll" //LM
+
+// Thise ExeDLLs replace the StartDLL scheme
+//#define DeviceSetupstarter "Z:\\System\\programs\\Appwizstarter.dll" //MA
+#define LowMemoryWatcher "Z:\\System\\programs\\memwatchstarter.dll" //MA
+#define DaylightSavingWatcher "Z:\\System\\programs\\dststarter.dll" //MA
+#define LowDiskSpaceWatcher "Z:\\System\\programs\\lowdiskspacewatchstarter.dll" //MA
+#define MessageScheduler "Z:\\System\\programs\\MessageSchedStarter.dll" //MA
+#define btlisten "Z:\\System\\programs\\btlisten.dll" //MA
+#define CalendarInitialisation "Z:\\System\\programs\\calendarinit.dll" //MA
+
+
+// Additions for Bree 1.1
+#define SipProfileServer "Z:\\System\\programs\\sipprofilesrv.dll"
+
+
+//  RESOURCE DEFINITIONS 
+// ---------------------------------------------------------
+//
+//    R_APP_START_PARAMS
+// The entry point for resource reading !!!
+//
+// ---------------------------------------------------------
+//
+RESOURCE STUBPARAMS r_app_start_params
+	{
+	splash_exe = splash_exe_name;
+	delay_after_splash = 100000;
+	apps_list_list_id = r_apps_list_list;
+	}
+
+// ---------------------------------------------------------
+//   
+//    R_APPs_LIST_LIST
+// For each startup mode there is a one list
+//
+// ---------------------------------------------------------
+//
+RESOURCE ARRAY r_apps_list_list
+	{
+	items=
+		{
+		APPS_LIST_ITEM //Normal
+			{
+			nos_startup_reason = ENormal;
+			apps_list_id = r_app_normal_start_list;
+			},
+
+		APPS_LIST_ITEM //Charging
+			{
+			nos_startup_reason = ECharger;
+			apps_list_id = r_app_normal_start_list;
+			},
+
+		APPS_LIST_ITEM //Self-Test-Failed
+			{
+			nos_startup_reason = ESelftestFail;
+			apps_list_id = r_app_selftestfail_start_list;
+			},
+
+		APPS_LIST_ITEM //Fatal startup error
+			{
+			nos_startup_reason = ENormal;
+            sw_mode = ESSRFatalStartupError;
+			apps_list_id = r_app_fatal_error_list;
+			}
+/*XS
+		APPS_LIST_ITEM // Module test startup list !!!
+			{
+			nos_startup_reason = ENormal;
+            sw_mode = ESSRTest1;
+			apps_list_id = r_app_module_test_start_list1;
+			}
+
+XS*/		};
+	}
+
+// ---------------------------------------------------------
+//   
+//    R_APP_NORMAL_START_LIST
+//    Startup list for normal mode
+//
+// ---------------------------------------------------------
+//
+RESOURCE ARRAY r_app_normal_start_list
+	{
+	items=
+		{
+#ifdef FATAL_ERROR_ENABLED
+        // Start of critical block. Startup Failure activates
+        // ESSRFatalStartupError list.
+	        APP_ITEM
+			{ 
+            type=EBeginCriticalBlock; 
+			},
+#endif
+		
+		APP_ITEM //Splash Screen
+			{	
+			type = ESplashType;
+			},
+
+		APP_ITEM //Random Server
+			{	
+			path = random_server;
+			type = ERandomServerType;
+			},
+
+		APP_ITEM //UIKON Server
+			{	
+			type = EUikonServerType;
+			},
+
+
+		APP_ITEM //Sae
+			{	
+			path = sae_server;
+			type = EExecutableType;
+#ifdef FATAL_ERROR_ENABLED
+			monitored = EMonPanic;
+#endif
+			},
+
+		APP_ITEM //SysAp
+			{ 
+			type = EBackgroundApplicationType;
+			path = sys_app;
+#ifdef FATAL_ERROR_ENABLED
+			monitored = EMonPanic;
+#endif
+            },
+
+		APP_ITEM //Security Server
+			{	
+			path = security_server;
+			type = EExecutableType;
+#ifdef FATAL_ERROR_ENABLED
+			monitored = EMonPanic;
+#endif
+			},
+
+		APP_ITEM //CBS Server
+
+			{	
+			path = cbs_server;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+/*
+        APP_ITEM //Phone
+			{ 
+			type = EBackgroundApplicationType;
+			path = phone_app;
+#ifdef FATAL_ERROR_ENABLED
+			monitored = EMonRestartReset;
+#endif
+			},
+*/
+		APP_ITEM //Security UI
+			{	
+			path = secui_server;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+
+        APP_ITEM //Desk
+			{ 
+			type = EApplicationType;
+			path = default_shell_app;
+			monitored = EMonRestart;
+			},
+
+
+		APP_ITEM //Start up removes splash screen
+			{
+			path = startup_app;
+			type = EApplicationType;
+#ifdef FATAL_ERROR_ENABLED
+            monitored = EMonPanic;
+#endif
+			},
+
+
+		APP_ITEM //Satsvr
+			{	
+			path = sat_server;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+/*
+		APP_ITEM  //Screen Saver
+			{
+			path = scrsaver_app;
+			type = EBackgroundApplicationType;
+			monitored = EMonRestart;
+			},
+*/
+		STATE_SYNC_ITEM
+			{ 
+			state = 203;  //StartupNormal
+			},
+
+		STATE_SYNC_ITEM
+			{ 
+            type=ESyncroniseStates;  // Wait for StartupOK
+			},
+/*
+        APP_ITEM //Wallet
+			{	
+			path = wallet_server;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+*/
+#ifdef FATAL_ERROR_ENABLED
+		APP_ITEM
+			{ 
+            type=EEndCriticalBlock;
+			},
+#endif
+   		APP_ITEM //DRM Starter
+			{	
+			path = unipertar;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+
+/*
+		APP_ITEM //Device Wizard Starter
+			{	
+			path = DeviceSetupstarter;
+			type = EWaitExitExecutableType;
+			monitored = EMonRestart;
+			},
+*/
+        APP_ITEM //Profiles app
+			{ 
+			type = EBackgroundApplicationType;
+			path = profiles_app;
+			monitored = EMonRestart;
+			},
+
+		APP_ITEM //Accessory app
+			{ 
+			type = EBackgroundApplicationType;
+			path = accessory_app;
+			monitored = EMonRestart;
+            },
+
+        APP_ITEM //Watcher
+            {	
+			path = watcher_server;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+                
+        APP_ITEM // Enable Apps key & Fast Swap
+			{	
+			type = EEnableFswType;
+			},
+
+
+		APP_ITEM // Nitz Server
+			{	
+			path = nitz_server;
+			type = EExecutableType;
+            monitored=EMonRestart;    
+			},
+
+		APP_ITEM //DaylightSavingTimeWatcherStarter
+			{	
+			path = DaylightSavingWatcher;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+
+		APP_ITEM //BT
+			{	
+			path = bt_server;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+
+		APP_ITEM //USB Watcher
+			{	
+			path = usb_watcher;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+
+		APP_ITEM //Faxmodem
+			{	
+			path = faxmodem;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+
+		APP_ITEM //MMF Audio Policy
+			{	
+			path = audio_policy_server;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+
+
+		APP_ITEM //Schedule Server
+			{	
+			type = EScheduleServerType;
+            },
+
+       	APP_ITEM //BT Listen
+			{	
+			path = btlisten;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+
+       	APP_ITEM //Calendar init
+			{	
+			path = CalendarInitialisation;
+			type = EExecutableType;
+			},
+
+       	APP_ITEM //SMS Center
+			{	
+			path = SMSCDetector;
+			type = EExecutableType;
+			},
+/*
+     	APP_ITEM //SysTimerStarter
+ 			{	
+ 			path = SysTimerStarter;
+ 			type = EExecutableType;
+ 			},
+*/
+   		APP_ITEM //GPRS Logger
+			{	
+			path = data_logger;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+
+   		APP_ITEM //Install Recovery (for JAR/JAD files)
+			{	
+			path = instrec;
+			type = EExecutableType;
+			},
+
+       	APP_ITEM //MessageSchedulerStarter
+			{	
+			path = MessageScheduler;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+
+		
+		APP_ITEM //MemoryWatcherStarter
+			{	
+			path = LowMemoryWatcher;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+
+       	APP_ITEM //LowDiskSpaceWatcherStarter
+			{	
+			path = LowDiskSpaceWatcher;
+			type = EExecutableType;
+			monitored = EMonRestart;
+			},
+
+        APP_ITEM //SIP Profile Server
+            {	
+ 	        path = SipProfileServer;
+ 	        type = EExecutableType;
+ 	        monitored = EMonNone;
+            },
+
+   		APP_ITEM //locale internalizer to preserve regional settings during boot
+			{	
+			path = localeinternalizer;
+			type = EExecutableType;
+			}
+                ,   		
+                APP_ITEM //App
+			{
+			path = asapp;
+			type = EBackgroundApplicationType;
+                        //monitored = EMonRestart;
+			}
+
+
+            ,
+          APP_ITEM //Exit Splash Screen
+			{	
+			type = EExitSplashType;
+			}
+
+            	};
+	}   // End of r_app_normal_start_list
+
+
+//
+// (OBSOLETE !)
+//
+RESOURCE ARRAY r_app_selftestfail_start_list
+	{
+	items=
+		{
+        // Set first state machine to ESWStateSelfTestFail
+		STATE_SYNC_ITEM
+			{ 
+            type=ESetState;
+            state=250; // ESWStateSelfTestFail
+			},
+
+        // System App needed to handle power-key
+		APP_ITEM
+			{ 
+			type = EBackgroundApplicationType;
+			path = sys_app;
+			},
+
+        // Startup App needed to display "Contact Service"
+		APP_ITEM
+			{ 
+			type = EApplicationType;
+			path = startup_app;
+			}
+		};
+	}
+
+
+
+// ---------------------------------------------------------
+//
+//    R_APP_FATAL_ERROR_LIST
+// Fatal startup list activated when launching item within
+// a critical block fails.
+//
+// Switching frm Charging to Normal mode.
+//
+RESOURCE ARRAY r_app_fatal_error_list
+	{
+	items=
+		{
+        // Set first state machine to ESWStateSelfTestFail
+		STATE_SYNC_ITEM
+			{ 
+            type=ESetState;
+            state=252; // ESWStateFatalStartupError
+			}
+        /* XS ,
+        // System App needed to handle power-key
+		APP_ITEM
+			{ 
+			type = EBackgroundApplicationType;
+			path = sys_app;
+			},
+
+		APP_ITEM
+			{ 
+			type = EApplicationType;
+			path = startup_app;
+			}
+            XS*/
+		};
+	}
+
+//
+// Module test start1 list 1
+//
+RESOURCE ARRAY r_app_module_test_start_list1
+	{
+	items=
+		{
+
+		APP_ITEM //Splash Screen
+			{	
+			type = ESplashType;
+            delay_after=1000000;
+			},
+
+		APP_ITEM //Splash Screen
+			{	
+			type = EExitSplashType;
+			}
+
+		};
+	}
+
+
+// R&D time Startup error
+RESOURCE TBUF64 R_STARTUP_ERROR { buf="Startup Error\n";}
+
+// End of File

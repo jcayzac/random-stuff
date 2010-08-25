@@ -1,0 +1,9 @@
+EXPORTS
+	??1CAseEngine2@@UAE@XZ @ 1 NONAME ; CAseEngine2::~CAseEngine2(void)
+	?AutoBootL@CAseEngine2@@QAEXXZ @ 2 NONAME ; void CAseEngine2::AutoBootL(void)
+	?Break@CAseEngine2@@QAEXXZ @ 3 NONAME ; void CAseEngine2::Break(void)
+	?IsRunning@CAseEngine2@@QBEHXZ @ 4 NONAME ; int CAseEngine2::IsRunning(void) const
+	?NewL@CAseEngine2@@SAPAV1@XZ @ 5 NONAME ; class CAseEngine2 * CAseEngine2::NewL(void)
+	?RunScriptL@CAseEngine2@@QAEXABVTDesC16@@W4TScriptMode@1@@Z @ 6 NONAME ; void CAseEngine2::RunScriptL(class TDesC16 const &, enum CAseEngine2::TScriptMode)
+	?SetObserver@CAseEngine2@@QAEXPAVMAseObserver@@@Z @ 7 NONAME ; void CAseEngine2::SetObserver(class MAseObserver *)
+

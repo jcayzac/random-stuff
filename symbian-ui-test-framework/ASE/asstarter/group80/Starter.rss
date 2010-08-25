@@ -1,0 +1,497 @@
+/*
+* ============================================================================
+*  Name     : Starter.rss
+*  Part of  : Starter Server / WINS
+*  Origin   : Rubik, Calypso
+*  Created  : Wed Oct 11 11:53:52 2000
+*  Description:
+*
+*     Erin start list for WINS emulator.
+*
+*     This file contains App SW level resources for starting up
+*     the device in the various startup modes. The resource is read by
+*     Starter.exe. The resource forms a simple "scripting language".
+*     The idea to let customise startup by
+*     configuring the resource only.
+*
+*     The modes are described below in uppercase:
+*     -------------------------------------------
+*     When device is off:
+*      - NORMAL (normal startup with full functionality)
+*      - TEST (R&D test mode)
+*
+*     When fatal error detected upon startup:
+*      - FATAL-ERROR i.e. "Contact Service" activated in CoverUI
+*
+*    Each mode refers to a list of Symbian OS applications or executables
+*    which need to be started. Each list forms the order of items started.
+*    In addition to applications/executables a list can contain special items
+*    which support the defined App SW state synchronisation policy or otherwise
+*    offer additional functionality.
+*
+*    NOTE ! This file is for WINS emulator only !
+*
+*  Version  :
+*   %version: 5 %, %date_modified: Mon Mar 29 15:37:54 2004 % by %derived_by: petchatn % 
+*  Copyright (c) 2000-2003 Nokia Mobile Phones. All rights reserved.
+*  ---------------------------------------------------------------------------
+*  Version history:
+*  Template version: 1.0, 28.2.2000 by maparnan
+*  <ccm_history>
+*
+*  Version: 25, 4 Jun 2001 by maparnan
+*  -The decarations moved to .RH file
+*  -NCNList added (after discussing with Tony)
+*  
+*  Version: 26, 27 Jun 2001 by maparnan
+*  -State sync support added (still in comments !)
+*  -Critical block support added for fatal error handling
+*
+*  Version: 29, 7 Sep 2001 by maparnan
+*  - Fast Swap window enabled by Calypso Starter
+*  - Bluetooth Server moved to the End (recommended by Ossi Tervonen)
+*
+*  Version: 31, 1 Nov 2001 by maparnan
+*  - State synchronisation added and "switch-to-*" startup lists updated.
+*  - Copied startup lists also to ARM version
+*
+*  Version: 32, 10 Dec 2001 by maparnan
+*  Fixed bug THAA-54FGCN by modifying r_app_selftestfail_start_list.
+*
+*  Version: 33, 05 Jan 2002 by maparnan
+*  Fixed Calypso defect TLIR-55CRDD (Warranty Transfer boot mode)
+*  More comments added.
+*
+*  Version: 35, 10 Feb 2002 by maparnan
+*  Splash screen removed from fatal start list.
+*
+*  Version: 36, 12 Feb 2002 by maparnan
+*  The bug PLES-56DFC5 fixed (Fast Swap key activated earlier)
+*
+*  Version: 37, 17 Feb 2002 by maparnan
+*  Code inspection changes (WT also removed)
+*
+*  Version: 38, 14 Mar 2002 by maparnan
+*  Bug fixes JJAA-56QC9J and KDRV-52B9JQ:
+*  Random Server & Schedule Server added,
+*  also Splash and UIKON start moved to resource
+*
+*  Version: 39, 21 Mar 2002 by maparnan
+*  Fatal startup error list modified.
+*
+*  Version: 1, 28 Jul 2003 by hyttinen
+*  Starter release for Erin
+*
+*  Version: %version%, %date_modified% by %derived_by%
+*  SecUI added to start list. Wallet, Autolock and Self-test-server removed.
+*
+*  </ccm_history>
+* ============================================================================
+*/
+
+#include <eikon.rh>
+#include "internal/startupreasons.h"
+#include "Starter.hrh"
+#include "Starter.rh"
+
+// Splashscreen (is a DLL in WINS)
+#define splash_exe_name     "Z:\\System\\Programs\\SplashScreen.dll"
+
+// Applications names
+#define startup_app         "Z:\\System\\Apps\\Startup\\Startup.app"
+#define sys_app             "Z:\\System\\Apps\\SysAp\\SysAp.app"
+#define phone_app           "Z:\\System\\Apps\\PhoneApp\\PhoneApp.app"
+
+// Additions for Rubik
+
+#define sae_server          "Z:\\System\\Programs\\Sae.dll"
+#define watcher_server      "Z:\\System\\Libs\\Watcher.dll"     // Should be in \System\Programs
+#define sat_server          "Z:\\System\\Programs\\SatServer.dll"
+#define cbs_server          "Z:\\System\\Programs\\CbsServer.dll"
+#define bt_server           "Z:\\System\\Programs\\BtServer.dll"
+#define faxmodem            "Z:\\System\\Programs\\FaxModem.dll"
+#define nitz_server         "Z:\\System\\Programs\\clknitzmdls.dll"
+
+#define security_server     "Z:\\System\\Programs\\SecurityServer.dll"
+#define usb_watcher         "Z:\\System\\Programs\\USBWatcher.dll"
+
+// Additions for Erin
+#define cover_ui            "Z:\\System\\Programs\\CuiStarter.dll"
+// Add-on s80 ->
+#define asapp "z:\\system\\apps\\ASAPP\\ASAPP.APP"
+// <- Add-on s80			
+
+//Dmitri Petchatnikov, 26.09.03
+//#define unipertar		"Z:\\System\\Programs\\Unipertar.dll"
+
+#define profileagent		"Z:\\System\\Programs\\profileagent.dll"
+
+#define srcs_server         "Z:\\System\\Programs\\srcs.dll"
+
+#define light_server        "Z:\\System\\Programs\\LightServer.exe"
+
+#define instrec				"Z:\\System\\Libs\\instrec.dll"
+
+#define tir					"Z:\\System\\Programs\\Tir.dll"
+
+#define IRListenStarter		"Z:\\System\\programs\\IRListenstarter.dll"
+
+//Can't find in epoc32\release\wins\udeb\z\system\PROGRAMS
+//#define rlock   		"Z:\\System\\Programs\\RLock.dll"
+
+#define SysTimerStarter       	"Z:\\System\\Programs\\systimerstarter.dll"
+
+#define LowDiskSpaceWatcher "Z:\\System\\programs\\lowdiskspacewatchstarter.dll"
+
+#define LowMemoryWatcher "Z:\\System\\programs\\memwatchstarter.dll"
+
+#define drag		"Z:\\System\\Programs\\Drag.exe"
+
+#define CalendarInitialisation "Z:\\System\\programs\\calendarinit.exe"
+
+
+//
+// --------------------------------------------------------------------
+//
+// Entry point for resource reading
+//
+RESOURCE STUBPARAMS r_app_start_params
+    {
+    splash_exe = splash_exe_name;
+    delay_after_splash = 100000;
+    apps_list_list_id = r_apps_list_list;
+    }
+
+
+//
+// --------------------------------------------------------------------
+//
+// Startup lists -- for each startup mode there is a one list
+//
+RESOURCE ARRAY r_apps_list_list
+    {
+    items=
+        {
+        APPS_LIST_ITEM  // Normal mode
+            {
+            nos_startup_reason = ENormal;
+
+            apps_list_id = r_app_normal_start_list;
+            },
+
+
+        APPS_LIST_ITEM  // Fatal startup error
+            {
+            nos_startup_reason = ENormal;
+
+            sw_mode = ESSRFatalStartupError;
+            apps_list_id = r_app_fatal_error_list;
+            }
+        };
+
+    }   // r_apps_list_list
+
+
+//
+// --------------------------------------------------------------------
+//
+// Normal start list
+//
+RESOURCE ARRAY r_app_normal_start_list
+    {
+    items=
+        {
+/*** OPEN ITEM: Content of critical block needs to be defined
+        APP_ITEM    // Start of critical block
+            { 
+            // Startup failure activates ESSRFatalStartupError list.
+            type = EBeginCriticalBlock; 
+            },
+***/
+
+        APP_ITEM    // Splash Screen
+            {   
+            type = ESplashType;
+            },
+
+        APP_ITEM    // Random Server
+            {   
+            type = ERandomServerType;
+            },
+            
+         // Seclauncher is not needed since it starts only
+        // security server and cbs server which are both
+        // started below.
+
+        APP_ITEM    // Security Server
+            {   
+            type = EExecutableType;
+            path = security_server;
+//            monitored = EMonPanic;
+            },
+
+        APP_ITEM    // UIKON Server
+            {   
+            type = EUikonServerType;
+            },
+
+        APP_ITEM    //  SAE - System agent extension
+            {   
+            type = EExecutableType;
+            path = sae_server;
+//            monitored = EMonPanic;    // OPEN ITEM: monitored startus in all APP_ITEMS?
+            },
+
+ 
+
+        APP_ITEM    // CBS Server
+            {
+            type = EExecutableType;
+            path = cbs_server;
+//            monitored = EMonRestart;
+            },
+		            
+        APP_ITEM    // Satsvr
+            {   
+            type = EExecutableType;
+            path = sat_server;
+//            monitored = EMonRestart;
+            },
+
+/***
+        APP_ITEM    // Cover UI
+            {
+            type = EExecutableType;
+            path = cover_ui;
+//            monitored = EMonPanic;
+            },
+
+***/
+
+/*****        APP_ITEM    // Phone application //Commented out for test purposes Petchatnikov
+            { 
+            type = EBackgroundApplicationType;
+            path = phone_app;
+//            monitored = EMonPanic;
+            },
+*****/
+        
+                    // System App needed to handle power-key
+        APP_ITEM
+            { 
+            type = EBackgroundApplicationType;
+            path = sys_app;
+            },
+
+        // Screen Saver, no PDA screen saver in Erin
+// Commented out for test purposes. Petchatnikov 22.08.03
+        APP_ITEM    // Start up application
+                    //  - starts Desk app too
+            {
+            type = EApplicationType;
+            path = startup_app;
+            },
+
+        STATE_SYNC_ITEM
+            { 
+            state = 212;               // StartupOK, 212 = ESWStateStartupOK
+            },
+
+        STATE_SYNC_ITEM
+            { 
+            type = ESyncroniseStates;  // Wait for StartupOK
+            },
+
+
+/*** OPEN ITEM: Critical block end? Is this correct location?
+        APP_ITEM
+            { 
+            type = EEndCriticalBlock;
+            },
+***/
+       // Default shell "shell.app" not launched, should be
+        // inserted here if there is need to launch it.
+        APP_ITEM    // Watcher -- launches the watcher framework
+                    //  - faxwatcher.dll
+                    //  - indicatorwatcher.dll
+                    //  - mmswatcher.dll
+                    //  - nbswatcher.dll
+                    //  - pushwatcher.dll
+                    //  - signalstrengthwatcher.dll
+                    //  - wapwatcher.dll
+            {   
+            type = EExecutableType;
+            path = watcher_server;
+//            monitored = EMonRestart;
+            },
+
+
+        APP_ITEM    // Enable Apps key & Fast Swap
+            {
+            type = EEnableFswType;
+            },
+
+        APP_ITEM // Nitz Server
+            {   
+            type = EExecutableType;
+            path = nitz_server;
+            monitored=EMonRestart;    
+            },
+
+        APP_ITEM    // Short range connectivity
+            {
+            type = EExecutableType;
+            path = srcs_server;
+//            monitored = EMonRestart;
+            },
+
+
+
+        APP_ITEM    // BT
+            {
+            type = EExecutableType;
+            path = bt_server;
+//            monitored = EMonRestart;
+            },
+
+
+        APP_ITEM    // USB Watcher
+            {
+            type = EExecutableType;
+            path = usb_watcher;
+//            monitored = EMonRestart;
+            },
+
+
+        APP_ITEM    // Faxmodem
+            {
+            type = EExecutableType;
+            path = faxmodem;
+//            monitored = EMonRestart;
+            },
+
+
+		/*
+
+        APP_ITEM    // Schedule Server
+            {
+            type = EScheduleServerType;
+            },*/
+
+	APP_ITEM //MemoryWatcherStarter
+	    {	
+		path = LowMemoryWatcher;
+		type = EExecutableType;
+		//monitored = EMonRestart;
+	    },        
+
+        APP_ITEM    // Exit Splash Screen
+            {   
+            type = EExitSplashType;
+            },
+
+        APP_ITEM    // SysTimer starter
+            {
+            type = EExecutableType;
+            path = SysTimerStarter;
+            monitored = EMonRestart;
+            },
+
+   /*
+        APP_ITEM    // Unipertar
+            {
+            type = EExecutableType;
+            path = unipertar;
+//            monitored = EMonRestart;
+            },*/
+        APP_ITEM    // Desk stand sync
+            {
+            type = EExecutableType;
+            path = drag;
+//            monitored = EMonRestart;
+            },
+        APP_ITEM    // profile_agent
+            {
+            type = EExecutableType;
+            path = profileagent;
+//            monitored = EMonRestart;
+            },
+        APP_ITEM    // LightServer
+            {
+            type = EExecutableType;
+            path = light_server;
+ //           monitored = EMonRestart;
+            },
+            
+        APP_ITEM    
+            {
+            type = EExecutableType;
+            path = instrec;
+ //           monitored = EMonRestart;
+            },
+
+		APP_ITEM    // tir
+            {
+            type = EExecutableType;
+            path = tir;
+//            monitored = EMonRestart;
+            },
+	APP_ITEM    // CalendarInitialisation
+            {
+            type = EExecutableType;
+            path = CalendarInitialisation;
+//            monitored = EMonRestart;
+            },  
+	APP_ITEM //ASAPP
+	    { 
+	    type = EBackgroundApplicationType;
+ 
+	    path = asapp;
+	    },
+       APP_ITEM    // 3rd party
+            {
+            type = ESetStarterToSetESWStateNormal;
+
+            }
+
+
+        };
+
+    }   // r_app_normal_start_list
+
+
+//
+// --------------------------------------------------------------------
+//
+// Fatal startup error
+// 
+// Fatal startup list activated when launching item within
+// a critical block fails.
+//
+RESOURCE ARRAY r_app_fatal_error_list
+    {
+    items=
+        {
+
+/*** OPEN ITEM: Content of fatal startup error list
+
+        // System App needed to handle power-key
+        APP_ITEM
+            { 
+            type = EBackgroundApplicationType;
+            path = sys_app;
+            },
+
+        APP_ITEM
+            { 
+            type = EApplicationType;
+            path = startup_app;
+            }
+***/
+        };
+
+    }   // r_app_fatal_error_list
+
+
+// R&D time Startup error
+RESOURCE TBUF64 R_STARTUP_ERROR { buf="Startup Error\n"; }

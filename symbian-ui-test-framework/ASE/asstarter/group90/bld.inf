@@ -1,0 +1,9 @@
+PRJ_PLATFORMS
+
+PRJ_EXPORTS
+//Starter_Netbook.iby	\epoc32\rom\include\Starter_Netbook.iby
+StartupReasons.h \epoc32\include\internal\StartupReasons.h
+
+PRJ_MMPFILES
+gnumakefile generatestarterrssfile.mk
+

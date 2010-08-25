@@ -1,0 +1,19 @@
+//
+// ASAPP.RSS
+//
+#include <aiftool.rh>
+
+RESOURCE AIF_DATA
+	{
+	caption_list=
+		{ 
+		CAPTION { code=ELangEnglish; caption="Asapp"; }
+		};
+	app_uid=0x1000b00f;
+	//
+	num_icons=2;
+	//
+	hidden=KAppNotHidden;
+	embeddability=KAppNotEmbeddable;
+	newfile=KAppDoesNotSupportNewFile;
+	}

@@ -1,0 +1,34 @@
+/*
+-----------------------------------------------------------------------------
+
+    DESCRIPTION
+
+    This file provides information required for adding Starter Server
+    binaries into ROM image.
+
+-----------------------------------------------------------------------------
+*/
+
+#ifndef __MINETBOOKSTARTER_IBY__
+#define __MINETBOOKSTARTER_IBY__
+
+#define __STARTER_IBY__ // to stop the rubik version being used
+
+// Starter Server
+
+file=ABI_DIR\BUILD_DIR\starter.exe				System\programs\starter.exe
+data=MULTI_LINGUIFY(RSC ZSYSTEM\Programs\starter		System\Programs\starter)
+
+
+// Starter Server Client Interface
+
+file=ABI_DIR\BUILD_DIR\starterclient.dll			System\libs\starterclient.dll
+
+
+// Rubik Splash Screen
+
+file=ABI_DIR\BUILD_DIR\splashscreen.exe				System\programs\splashscreen.exe
+bitmap=ZSYSTEM\Data\splashscreen.mbm				System\Data\SplashScreen.mbm
+
+
+#endif // __MINETBOOKSTARTER_IBY__

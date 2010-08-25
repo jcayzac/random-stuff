@@ -1,0 +1,103 @@
+//
+// arse.rss
+//
+
+NAME ARUI
+
+#include "asapp.hrh"
+
+#include <eikon.rh>
+#include <eikcore.rsg>
+
+
+RESOURCE RSS_SIGNATURE { }
+
+RESOURCE TBUF16 { buf=""; }
+
+RESOURCE EIK_APP_INFO
+	{
+	menubar=r_ase_menubar;
+	hotkeys=r_ase_hotkeys;
+    cba=r_ase_cba;
+	}
+
+RESOURCE CBA r_ase_cba
+    {
+    buttons=
+        {
+		CBA_BUTTON { id=EAseCmdOpenScript;	txt="Open"; },
+		CBA_BUTTON { id=EAseCmdRunScript;	txt="Run"; },
+		CBA_BUTTON { id=EAseCmdStopScript;	txt="Stop"; }
+//		CBA_BUTTON { id=EAseCmdSaveScript;	txt="Save"; }
+		};
+	}
+
+RESOURCE HOTKEYS r_ase_hotkeys
+    {
+    control=
+        {
+		HOTKEY {command=EEikCmdEditSelectAll;	key='a';},
+		HOTKEY {command=EEikCmdEditCopy;		key='c';},
+		HOTKEY {command=EEikCmdExit;			key='e';},
+//		HOTKEY {command=EAseCmdOpenScript;		key='o';},
+//		HOTKEY {command=EAseCmdRunScript;		key='r';},
+//		HOTKEY {command=EAseCmdSaveScript;		key='s';},
+		HOTKEY {command=EEikCmdEditPaste;		key='v';},
+		HOTKEY {command=EEikCmdEditCut;			key='x';}
+		};
+	shift_control=
+		{
+//		HOTKEY {command=EAseCmdPreferences;	key='k';},
+//		HOTKEY {command=EAseCmdSaveAsScript;	key='s';}
+		};
+	}
+
+RESOURCE MENU_BAR r_ase_menubar
+    {
+    titles=
+        {
+		MENU_TITLE { menu_pane=r_ase_file_menu;	txt="File"; }
+//		MENU_TITLE { menu_pane=r_ase_edit_menu;	txt="Edit"; }
+        };
+    }
+
+RESOURCE MENU_PANE r_ase_edit_menu
+	{
+	items=
+		{
+		MENU_ITEM
+			{
+			command=EEikCmdEditCut;
+			txt="Cut";
+			},
+		MENU_ITEM
+			{
+			command=EEikCmdEditCopy;
+			txt="Copy";
+			},
+		MENU_ITEM
+			{
+			command=EEikCmdEditPaste;
+			txt="Paste";
+			},
+		MENU_ITEM
+			{
+			command=EEikCmdEditSelectAll;
+			txt="Select all";
+			}
+		};
+	}
+
+RESOURCE MENU_PANE r_ase_file_menu
+    {
+    items=
+		{
+		MENU_ITEM
+			{
+			command=EEikCmdExit;
+			txt="Close";
+			}
+		};
+	}
+
+RESOURCE TBUF r_ase_open_file_dialog	{ buf="Open script"; }

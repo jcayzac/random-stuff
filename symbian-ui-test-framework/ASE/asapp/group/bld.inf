@@ -1,0 +1,9 @@
+PRJ_PLATFORMS
+
+PRJ_EXPORTS
+..\group\asapp.iby                      \epoc32\rom\include\asapp.iby
+
+PRJ_MMPFILES
+..\group\asapp.mmp
+
+PRJ_TESTMMPFILES

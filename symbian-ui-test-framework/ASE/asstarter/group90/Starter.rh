@@ -1,0 +1,82 @@
+/*
+* ============================================================================
+*  Name     : CalypsoStart.rh
+*  Part of  : CalypsoStart
+*  Origin   : Calypso
+*  Created  : Thu May 30 11:48:54 2001 by maparnan
+*  Description:
+*     This file contains declarations for resources of CalypsoStart.
+*     The file can be included in resource file.
+*
+*  Version  :
+*   %version: 3 %, %date_modified: Tue Mar 04 12:05:52 2003 % by %derived_by: pekallio % 
+*  Copyright (c) 2000 Nokia Mobile Phones. All rights reserved.
+*  ---------------------------------------------------------------------------
+*  Version history:
+*  Template version: 1.0, 28.2.2000 by maparnan
+*  <ccm_history>
+*
+*  Version: 1, 30 May 2001 by maparnan
+*  Initial version
+*
+*  Version: 2, Tue Jun 26 2001 by maparnan
+*  -State sync support added
+*  -Critical block support added for fatal error handling
+*
+*  Version: 5, Thu Mar 14 14:30:11 2002 by maparnan
+*  Delay_after set to zero
+*  </ccm_history>
+* ============================================================================
+*/
+#ifndef __STARTER_RH__
+#define __STARTER_RH__
+#include <starter.hrh>
+
+// The root of startup lists
+//
+STRUCT STUBPARAMS
+	{
+	LTEXT splash_exe = "";          // splash executable path
+	LONG delay_after_splash = 0;    // delay after splash
+    LLINK apps_list_list_id;        // 
+	}
+
+// Application item in a startup list
+//
+STRUCT APP_ITEM
+	{
+	WORD type = ENoneType;   // One of TItemType values
+	LTEXT path = "";    // Full path name
+	LONG delay_after = 0; // Defay after the startup in microsecs,
+                          // e.g. 1000000 is one second
+    WORD monitored = EMonNone; // One of TMonitoringMode values
+	}
+
+// State synchronisation item in a startup list
+// MUST BE BINARY COMPATIBLE WITH APP_ITEM.
+// The set of items from a first item up to the ESyncroniseStates item
+// create one synchronisation block with AND condition (item1 AND item2 ...). 
+// The block is activated by ESyncroniseStates item,
+// then starter waits for all the collected state notifications before it
+// continues startup sequence. After the synchronisation is done, the
+// block is discarded and another synchronisation block may follow.
+//
+STRUCT STATE_SYNC_ITEM
+	{
+	WORD type = EStateSyncItem;
+//	LTEXT not_used_1=""; // Not used
+	LONG delay_after = 0; // Defay after reading sync element
+    WORD state=0; // State required (see state values in SysUtil::SysStartup.h)
+	}
+
+//
+// Startup list (one per startup mode)
+//
+STRUCT APPS_LIST_ITEM
+	{
+	WORD nos_startup_reason = ENotKnown; 
+	WORD sw_mode = ESSRNull;  // EPOC SW defined auxilliary startup reason
+	LLINK apps_list_id;
+	}
+
+#endif  // __STARTER_RH__

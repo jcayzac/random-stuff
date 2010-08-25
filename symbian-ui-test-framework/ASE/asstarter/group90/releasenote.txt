@@ -1,0 +1,43 @@
+Release Note for Starter server for Hildon emulator
+= = = = = = = = = = = = = = = = = = = = =
+
+Specification Documents & versions + Requirements Not Yet Implemented:
+= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
+
+Defects Fixed list:
+= = = = = = = = = =
+
+Requirements/Features Implemented in this Release:
+= = = = = = = = = = = = = = = = = = = = = = = = = 
+
+Technical Information:
+= = = = = = = = = = =
+
+Starter server for Hildon emulator
+- - - - - - - -
+Name: Starter_hemulator
+Notes: 
+
+
+API Changes
+= = = = = = 
+None
+
+Configuration & Build Information
+= = = = = = = = = = = = = = = = = 
+
+Build Messages
+- - - - - - - -
+none
+
+Component(s) Added:
+- - - - - - - - - -
+none
+
+Components Removed:
+ - - - - - - - - -
+none
+
+Amendments to Build Process:
+- - - - - - - - - - - - - - 
+none

@@ -1,0 +1,138 @@
+<HTML>
+	<HEAD>
+		<STYLE>
+body {
+	background-color:#ffffff;
+}
+.mtable {
+	background-color:#fdfdff;
+	border: 1px solid #B0B0D0;
+}
+.modsummary {
+	border: 1px solid teal;
+}
+.instructions {
+	font-style:italic;
+	text-align:right;
+	color:gray;
+	margin-left:.5em;
+}
+.headline {
+	background-color:teal;
+	color:white;
+	font-family:Arial Black;
+	font-size:16pt;
+	text-align:center;
+	padding-top:1em;
+}
+.group {
+	font-family:Arial Black;
+	font-size:14pt;
+	margin-top:.5em;
+	margin-left:.5em;
+	margin-bottom:.5em;
+}
+.button {
+	font-family:Verdana;
+	font-size:10pt;
+	font-weight:bold;
+	text-align:right;
+	color:gray;
+	cursor:hand;
+}
+.arrow {
+	font-family:Webdings;
+}
+.covy {
+	font-family: Courier New, Courier, fixed;
+	font-size: small;
+	color: black;
+	background-color: #c0ffc0;
+}
+.covn {
+	font-family: Courier New, Courier, fixed;
+	font-size: small;
+	color: black;
+	background-color: #ffcaba;
+}
+		</STYLE>
+	</HEAD>
+
+	<SCRIPT type="text/javascript">
+	<!-- ..................... declarations .......................... -->
+	var sourceURL	= "coverage.xml";
+	var styleURL	= "CPPCoverage.xsl";
+	var version		= "1.1";
+	var source		= new ActiveXObject("Microsoft.XMLDOM");
+	var style		= new ActiveXObject("Microsoft.XMLDOM");
+	<!-- ......................... init .............................. -->
+	source.async	= false;
+	style.async		= false;
+	source.load(sourceURL);
+	style.load(styleURL);
+
+	function showModuleStats(modname) {
+		mode	= style.selectSingleNode("//xsl:param[@name='mode']");
+		mode.setAttribute("select", "'module'");
+		ver		= style.selectSingleNode("//xsl:param[@name='version']");
+		ver.setAttribute("select", "'"+version+"'");
+		module	= style.selectSingleNode("//xsl:param[@name='module']");
+		module.setAttribute("select", "'"+modname+"'");
+		contentdiv = document.all.item("content");
+		contentdiv.innerHTML = source.transformNode(style);
+	}
+
+	function showFileStats(modname, filename) {
+		mode	= style.selectSingleNode("//xsl:param[@name='mode']");
+		mode.setAttribute("select", "'source'");
+		ver		= style.selectSingleNode("//xsl:param[@name='version']");
+		ver.setAttribute("select", "'"+version+"'");
+		module	= style.selectSingleNode("//xsl:param[@name='module']");
+		module.setAttribute("select", "'"+modname+"'");
+		file		= style.selectSingleNode("//xsl:param[@name='source']");
+		file.setAttribute("select", "'"+filename+"'");
+		contentdiv = document.all.item("content");
+		contentdiv.innerHTML = source.transformNode(style);
+	}
+	
+	function fillMenu() {
+		mode = style.selectSingleNode("//xsl:param[@name='mode']");
+		mode.setAttribute("select", "'menu'");
+		ver	= style.selectSingleNode("//xsl:param[@name='version']");
+		ver.setAttribute("select", "'"+version+"'");
+		contentdiv = document.all.item("menu");
+		contentdiv.innerHTML = source.transformNode(style);
+	}
+
+	function home() {
+		contentdiv = document.all.item("content");
+		homediv = document.all.item("home");
+		contentdiv.innerHTML = homediv.innerHTML;
+	}
+	</SCRIPT>
+
+	<BODY onload="fillMenu(); home();">
+		<DIV id="menu">
+		<!-- dynamic content -->
+		</DIV>
+		<br/>
+		<!-- Main -->
+		<DIV id="content" align="center">&#x0020;</DIV>
+		<!-- Misc -->
+		<DIV id="home" style="display:none">
+			<br/><br/><br/><br/><br/><br/>
+			<h2 align="center">
+				Select a module in the list above.
+			</h2>
+			<P style="font-size: x-small">
+				Don't see anything? This page requires <a href="http://www.microsoft.com/windows/ie/default.asp" title="IE home page">Internet Explorer version 6</a> or above.
+			</P>
+			<br/><br/>
+			<!--TABLE width="80%" border="0"><TR><TD>
+				<strong>Known bugs:</strong><br/><br/>
+				<li>(none)</li>
+			</TD></TR></TABLE-->
+		</DIV>
+		
+	</BODY>
+</HTML>

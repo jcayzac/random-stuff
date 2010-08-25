@@ -1,0 +1,89 @@
+/*
+* ==============================================================================
+*  Name        : Starter.rh
+*  Part of     : Starter
+*  Description : This file contains declarations for resources of Starter.
+*                The file can be included in resource file.
+*  Version     : 1
+*
+*  Copyright © 2002 Nokia Corporation.
+*  This material, including documentation and any related 
+*  computer programs, is protected by copyright controlled by 
+*  Nokia Corporation. All rights are reserved. Copying, 
+*  including reproducing, storing, adapting or translating, any 
+*  or all of this material requires the prior written consent of 
+*  Nokia Corporation. This material also contains confidential 
+*  information which may not be disclosed to others without the 
+*  prior written consent of Nokia Corporation.
+* ==============================================================================
+*/
+
+#ifndef STARTER_RH
+#define STARTER_RH
+
+//  INCLUDES
+#include <Starter.hrh>
+
+//  STRUCTURE DEFINITIONS
+
+// -----------------------------------------------------------------------------
+// STUBPARAMS
+// The root of startup lists
+// -----------------------------------------------------------------------------
+//
+STRUCT STUBPARAMS
+    {
+    LTEXT splash_exe = "";          // splash executable path
+    LONG delay_after_splash = 0;    // delay after splash
+    LLINK apps_list_list_id;        // 
+    }
+
+// -----------------------------------------------------------------------------
+// APP_ITEM
+// Application item in a startup list
+// -----------------------------------------------------------------------------
+//
+STRUCT APP_ITEM
+    {
+    WORD type = ENoneType;          // One of TItemType values
+    LTEXT path = "";                // Full path name
+    LONG delay_after = 0;           // Defay after the startup in microsecs,
+                                    // e.g. 1000000 is one second
+    WORD monitored = EMonNone;      // One of TMonitoringMode values
+    }
+
+// -----------------------------------------------------------------------------
+// STATE_SYNC_ITEM
+// State synchronisation item in a startup list
+// MUST BE BINARY COMPATIBLE WITH APP_ITEM.
+// The set of items from a first item up to the ESyncroniseStates item
+// create one synchronisation block with AND condition (item1 AND item2 ...). 
+// The block is activated by ESyncroniseStates item,
+// then starter waits for all the collected state notifications before it
+// continues startup sequence. After the synchronisation is done, the
+// block is discarded and another synchronisation block may follow.
+// -----------------------------------------------------------------------------
+//
+STRUCT STATE_SYNC_ITEM
+    {
+    WORD type = EStateSyncItem;
+    LTEXT name="";                  // Reserved if needed
+    LONG delay_after = 0;           // Defay after reading sync element
+    WORD state=0;                   // State required (see state values in SysUtil::SysStartup.h)
+    }
+
+// -----------------------------------------------------------------------------
+// APPS_LIST_ITEM
+// Startup list (one per startup mode)
+// -----------------------------------------------------------------------------
+//
+STRUCT APPS_LIST_ITEM
+    {
+    WORD nos_startup_reason = ENotKnown; 
+    WORD sw_mode = ESSRNull;        // EPOC SW defined auxilliary startup reason
+    LLINK apps_list_id;
+    }
+
+#endif
+            
+// End of File

@@ -1,0 +1,11 @@
+#ifndef __ASE_IBY__
+#define __ASE_IBY__
+
+file=ABI_DIR\BUILD_DIR\asapp.app					System\Apps\asapp\asapp.app
+aif=ZSYSTEM\Apps\asapp\asapp.aif					System\Apps\asapp\asapp.aif
+data=MULTI_LINGUIFY(rsc ZSYSTEM\apps\asapp\asapp	System\Apps\asapp\asapp)
+
+file=ABI_DIR\BUILD_DIR\simkin.dll					System\Libs\simkin.dll
+file=ABI_DIR\BUILD_DIR\aseng.dll					System\Libs\aseng.dll
+
+#endif

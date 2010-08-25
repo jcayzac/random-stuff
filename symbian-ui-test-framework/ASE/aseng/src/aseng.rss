@@ -1,0 +1,13 @@
+CHARACTER_SET UTF8
+
+NAME ASE
+
+#include <eikon.rh>
+#include "AseErrors.rls"
+
+RESOURCE RSS_SIGNATURE { }
+
+RESOURCE TBUF r_ase_err_cannot_open		{ buf=ASE_ERR_CANNOT_OPEN; }
+RESOURCE TBUF r_ase_err_bad_file_type	{ buf=ASE_ERR_BAD_FILE_TYPE; }
+RESOURCE TBUF r_ase_err_memory			{ buf=ASE_ERR_MEMORY; }
+RESOURCE TBUF r_ase_err_no_base			{ buf=ASE_ERR_NO_BASE; }

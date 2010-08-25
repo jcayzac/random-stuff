@@ -1,0 +1,16 @@
+&EN
+#{"Any Scripting Engine"},(0x1000b00f),2,0,1,TYPE=SISAPP
+
+"\epoc32\release\thumb\urel\SIMKIN.DLL"  -  	"!:\system\libs\SIMKIN.DLL"
+"\epoc32\release\thumb\urel\ASENG.DLL"  -  	"!:\system\libs\ASENG.DLL"
+
+"\epoc32\DATA\Z\SYSTEM\apps\ASAPP\ASAPP.AIF" - "!:\System\Apps\ASAPP\ASAPP.AIF"
+"\epoc32\DATA\Z\SYSTEM\apps\ASAPP\ASAPP_xip.AIF" - "!:\System\Apps\ASAPP\ASAPP_xip.AIF"
+"\epoc32\DATA\Z\SYSTEM\apps\ASAPP\ASAPP.RSC" - "!:\System\Apps\ASAPP\ASAPP.RSC"
+"\epoc32\release\thumb\urel\ASAPP.APP" - "!:\System\Apps\ASAPP\ASAPP.APP"
+
+!({"Install test script"})
+
+if option1 = 1
+	"\src\asapp\group\testscript.ase"	- "!:\MyDocs\testscript.ase"
+endif

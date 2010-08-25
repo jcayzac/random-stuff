@@ -1,0 +1,5 @@
+
+rls_string ASE_ERR_CANNOT_OPEN		"Cannot open file."
+rls_string ASE_ERR_BAD_FILE_TYPE	"Bad file type."
+rls_string ASE_ERR_MEMORY			"Memory error."
+rls_string ASE_ERR_NO_BASE			"No ScreenShot base name defined."

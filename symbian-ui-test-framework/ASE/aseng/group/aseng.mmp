@@ -1,0 +1,34 @@
+macro PLATFORM_S80
+#define PLATFORM_S80
+
+TARGET		aseng.dll
+TARGETTYPE	DLL
+UID		0x1000008D 0xDEADA42E
+LANG		SC
+
+SYSTEMINCLUDE	\epoc32\include \epoc32\include\libc
+SYSTEMRESOURCE 	..\src\aseng.rss
+
+SOURCEPATH	..\src
+USERINCLUDE	..\inc
+USERINCLUDE	..\..\simkin\src
+
+SOURCE	AseEngine.cpp
+SOURCE	AseEngineExtra.cpp
+SOURCE	ThreadWatcher.cpp
+
+LIBRARY	estlib.lib
+LIBRARY	euser.lib
+LIBRARY cone.lib
+LIBRARY ws32.lib
+LIBRARY fbscli.lib
+LIBRARY efsrv.lib
+LIBRARY	eikcore.lib
+LIBRARY	egul.lib
+LIBRARY	gdi.lib
+LIBRARY	bitgdi.lib
+LIBRARY	ImageConversion.lib
+LIBRARY apgrfx.lib
+LIBRARY apparc.lib
+LIBRARY	apmime.lib 
+LIBRARY	simkin.lib

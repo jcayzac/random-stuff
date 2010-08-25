@@ -1,0 +1,9 @@
+{
+	main[() {
+		privatetrace("test");
+		sleep(10);
+		screenshot("d:/screen1.png");
+		sleep();
+		privatetrace("fini");
+	}]
+}

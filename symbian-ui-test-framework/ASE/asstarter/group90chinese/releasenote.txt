@@ -1,0 +1,5 @@
+Starter Server (Netbook)
+========================
+
+MA 22/08/2003
+All watchers must be restarted if they stop for whatever reason.

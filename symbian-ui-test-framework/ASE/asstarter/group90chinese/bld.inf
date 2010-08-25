@@ -1,0 +1,9 @@
+PRJ_PLATFORMS
+
+PRJ_EXPORTS
+starter.iby	\epoc32\rom\include\starter.iby
+wsini.net		\epoc32\release\misa\wsini.net
+
+PRJ_MMPFILES
+gnumakefile generatestarterrssfile.mk
+

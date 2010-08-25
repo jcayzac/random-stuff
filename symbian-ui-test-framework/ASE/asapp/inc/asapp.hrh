@@ -1,0 +1,22 @@
+
+#ifndef ASAPP_HRH_INCLUDED
+#define ASAPP_HRH_INCLUDED
+
+enum
+	{
+	EAseCmdRunScript=0x300,
+	EAseCmdOpenScript,
+	EAseCmdStopScript,
+	EAseCmdSaveScript,
+	EAseCmdSaveAsScript,
+	EAseCmdPreferences,
+	ELogTimeCheckBox,
+	ELogChoiceList,
+	EPrintChoiceList,
+	EDefaultPath,
+	ELogScriptChangesCheckBox,
+	EAseQueryText,
+	EAseAlertQuery
+	};
+
+#endif
