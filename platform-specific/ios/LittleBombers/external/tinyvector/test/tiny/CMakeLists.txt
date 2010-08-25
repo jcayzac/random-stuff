@@ -1,0 +1,4 @@
+definetest(TinyGenericFloat)
+definetest(TinyGenericDouble)
+definetest(TinyVectorizedFloat)
+definetest(TinyVectorizedDouble)
