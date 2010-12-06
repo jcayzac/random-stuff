@@ -1,4 +1,4 @@
-# Bost Minidom
+# Boost Minidom
 
 ## Purpose
 My aim is to provide C++ developers with a portable lightweight DOM implementation depending only on the STL and Boost libraries.
