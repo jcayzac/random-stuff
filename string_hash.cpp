@@ -1,34 +1,37 @@
-#include <iostream>
-#include <string>
-#include <boost/functional/hash.hpp>
 
-#define declare_string(name_, value_)								\
-struct name_ {														\
-	static const std::string& name() {								\
-		static std::string x(#name_);								\
-		return x;													\
-	}																\
-	static const std::string& value() {								\
-		static std::string x(value_);								\
-		return x;													\
-	}																\
-	static std::size_t hash() {										\
-		static std::size_t x(boost::hash<std::string>()(value()));	\
-		return x;													\
-	}																\
+template <typename T, int N> char ( &_ArraySizeHelper( T (&array)[N] ))[N];
+#define typed_sizeof(x) sizeof(_ArraySizeHelper(x))
+
+namespace compile_time_hash {
+	static inline unsigned int h(const unsigned int& v, const unsigned int& s) {
+		return v + 0x9e3779b9U + (s<<6) + (s>>2);
+	}
+
+	template<int N>
+	struct H {
+		static unsigned int exec(const char* p) {
+			return h(p[N-1], H<N-1>::exec(p));
+		}
+	};
+
+	template<>
+	struct H<0> {
+		static unsigned int exec(const char* p) { return 0; }
+	};
 }
 
-declare_string(a, "abcdef");
-declare_string(b, "std::size_t _hash(boost::hash<std::string>()(string");
+#define static_string_hash(x) compile_time_hash::H<typed_sizeof(x)>::exec(x)
 
+// test program
+#include <iostream>
 int main() {
 	std::cout <<
-		" name = [" << a::name() << "]\n" <<
-		" hash = [" << a::hash() << "]\n" <<
-		"value = [" << a::value() << "]\n";
-	std::cout <<
-		" name = [" << b::name() << "]\n" <<
-		" hash = [" << b::hash() << "]\n" <<
-		"value = [" << b::value() << "]\n";
+		// static_string_hash("bla") will produce the following asm instruction on my machine:
+		// movl    $3411065318, %esi
+		static_string_hash("bla") << "\n" <<
+		// static_string_hash("123456789ABCD"):
+		// movl    $2657608752, %esi
+		static_string_hash("123456789ABCD") << "\n";
 	return 0;
 }
+
