@@ -1,26 +1,27 @@
 
 template <typename T, int N> char ( &_ArraySizeHelper( T (&array)[N] ))[N];
-#define typed_sizeof(x) sizeof(_ArraySizeHelper(x))
+#define array_sizeof(x) sizeof(_ArraySizeHelper(x))
 
 namespace compile_time_hash {
 	static inline unsigned int h(const unsigned int& v, const unsigned int& s) {
 		return v + 0x9e3779b9U + (s<<6) + (s>>2);
 	}
 
-	template<int N>
+	template<typename T, int N>
 	struct H {
-		static unsigned int exec(const char* p) {
-			return h(p[N-1], H<N-1>::exec(p));
+		static unsigned int exec(const T* p) {
+			return h(p[N-1], H<T, N-1>::exec(p));
 		}
 	};
 
-	template<>
-	struct H<0> {
-		static unsigned int exec(const char* p) { return 0; }
+	template<typename T>
+	struct H<T,0> {
+		static unsigned int exec(const T* p) { return 0; }
 	};
 }
 
-#define static_string_hash(x) compile_time_hash::H<typed_sizeof(x)>::exec(x)
+#define static_string_hash(x)  compile_time_hash::H<char, array_sizeof(x)>::exec(x)
+#define static_wstring_hash(x) compile_time_hash::H<wchar_t, array_sizeof(x)>::exec(x)
 
 // test program
 #include <iostream>
@@ -41,7 +42,9 @@ int main() {
 		//           …
 		//     L12:  .long -1637358544
 		// (signed -1637358544 and unsigned 2657608752 are the same 32-bit constant)
-		static_string_hash("123456789ABCD") << "\n";
+		static_string_hash("123456789ABCD") << "\n" <<
+		// Same string, but with wide chars (produces the same result)
+		static_wstring_hash(L"123456789ABCD") << "\n";
 	return 0;
 }
 
