@@ -27,10 +27,20 @@ namespace compile_time_hash {
 int main() {
 	std::cout <<
 		// static_string_hash("bla") will produce the following asm instruction on my machine:
-		// movl    $3411065318, %esi
+		//     movl    $3411065318, %esi
+		// and on iPhone it will store the value in static storage:
+		//           ldr r0, L12
+		//           …
+		//     L12:  .long -883901978
+		// (signed -883901978 and unsigned 3411065318 are the same 32-bit constant)
 		static_string_hash("bla") << "\n" <<
 		// static_string_hash("123456789ABCD"):
-		// movl    $2657608752, %esi
+		//     movl    $2657608752, %esi
+		// and on iPhone it will store the value in static storage:
+		//           ldr r0, L12
+		//           …
+		//     L12:  .long -1637358544
+		// (signed -1637358544 and unsigned 2657608752 are the same 32-bit constant)
 		static_string_hash("123456789ABCD") << "\n";
 	return 0;
 }
