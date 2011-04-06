@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
-function consume() {
-	curl  2>/dev/null | sed -En 's/^[[:space:]]*\/\*[[:space:]]*(GL_[[:alnum:]_]+)[[:space:]]*\*\//\1/p' | sort -u
-}
-
+curl 'http://www.khronos.org/registry/gles/api/2.0/gl2ext.h' 2>/dev/null | \
+sed -En 's/^[[:space:]]*\/\*[[:space:]]*(GL_[[:alnum:]_]+)[[:space:]]*\*\//\1/p' | \
+sort -u
 
