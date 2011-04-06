@@ -28,22 +28,24 @@ struct runtime_hash {
 	static unsigned int exec(const T* p, unsigned int N) {
 		unsigned int res(0);
 		for (unsigned int i(0); i<N; ++i) {
-			res = compile_time_hash::h(p[i], res);
+			res = h(p[i], res);
 		}
 		return res;
 	}
 };
 
-#define static_string_hash(x)  compile_time_hash::H<char, array_sizeof(x)>::exec(x)
-#define static_wstring_hash(x) compile_time_hash::H<wchar_t, array_sizeof(x)>::exec(x)
+#define static_string_hash(x)  compile_time_hash::H<char, array_sizeof(x)-1>::exec(x)
+#define static_wstring_hash(x) compile_time_hash::H<wchar_t, array_sizeof(x)-1>::exec(x)
 
 // test program
 #include <iostream>
+
+unsigned int test1() { return static_string_hash("bla"); }
+
 int main() {
 	std::cout <<
 		// This is computed at runtime, and will process each character in turn.
-		// Note that the trailing 0 is part of the char array, so size is 4.
-		runtime_hash<char>::exec("bla",4) << "\n" <<
+		runtime_hash<char>::exec("bla",3) << "\n" <<
 		// static_string_hash("bla") will produce the following asm instruction on my machine:
 		//     movl    $3411065318, %esi
 		// and on iPhone it will store the value in static storage:
