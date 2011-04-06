@@ -1,12 +1,15 @@
+/*
+   compile-time hash functions,
+   http://github/jcayzac
+*/
 
 template <typename T, int N> char ( &_ArraySizeHelper( T (&array)[N] ))[N];
 #define array_sizeof(x) sizeof(_ArraySizeHelper(x))
+static inline unsigned int h(const unsigned int& v, const unsigned int& s) {
+	return v + 0x9e3779b9U + (s<<6) + (s>>2);
+}
 
 namespace compile_time_hash {
-	static inline unsigned int h(const unsigned int& v, const unsigned int& s) {
-		return v + 0x9e3779b9U + (s<<6) + (s>>2);
-	}
-
 	template<typename T, int N>
 	struct H {
 		static unsigned int exec(const T* p) {
@@ -20,6 +23,17 @@ namespace compile_time_hash {
 	};
 }
 
+template<typename T>
+struct runtime_hash {
+	static unsigned int exec(const T* p, unsigned int N) {
+		unsigned int res(0);
+		for (unsigned int i(0); i<N; ++i) {
+			res = compile_time_hash::h(p[i], res);
+		}
+		return res;
+	}
+};
+
 #define static_string_hash(x)  compile_time_hash::H<char, array_sizeof(x)>::exec(x)
 #define static_wstring_hash(x) compile_time_hash::H<wchar_t, array_sizeof(x)>::exec(x)
 
@@ -27,6 +41,9 @@ namespace compile_time_hash {
 #include <iostream>
 int main() {
 	std::cout <<
+		// This is computed at runtime, and will process each character in turn.
+		// Note that the trailing 0 is part of the char array, so size is 4.
+		runtime_hash<char>::exec("bla",4) << "\n" <<
 		// static_string_hash("bla") will produce the following asm instruction on my machine:
 		//     movl    $3411065318, %esi
 		// and on iPhone it will store the value in static storage:
