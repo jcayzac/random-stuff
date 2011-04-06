@@ -40,7 +40,12 @@ struct runtime_hash {
 // test program
 #include <iostream>
 
-unsigned int test1() { return static_string_hash("bla"); }
+// If you want to look at the assembly, search for "bla" :)
+static const unsigned int bla1 = static_string_hash("bla");
+static const char bla_as_fixed_size_array[] = "bla"; // you can't use const char*
+static const unsigned int bla2 = static_string_hash(bla_as_fixed_size_array);
+unsigned int bla3() { return static_string_hash("bla"); }
+unsigned int bla4() { return static_string_hash(bla_as_fixed_size_array); }
 
 int main() {
 	std::cout <<
