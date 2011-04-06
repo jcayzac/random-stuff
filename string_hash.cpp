@@ -9,24 +9,22 @@ static inline unsigned int h(const unsigned int& v, const unsigned int& s) {
 	return v + 0x9e3779b9U + (s<<6) + (s>>2);
 }
 
-namespace compile_time_hash {
-	template<typename T, int N>
-	struct H {
-		static unsigned int exec(const T* p) {
-			return h(p[N-1], H<T, N-1>::exec(p));
-		}
-	};
+template<typename T, int N, unsigned int S=0>
+struct H {
+	static unsigned int exec(const T* p) {
+		return h(p[N-1], H<T, N-1, S>::exec(p));
+	}
+};
 
-	template<typename T>
-	struct H<T,0> {
-		static unsigned int exec(const T* p) { return 0; }
-	};
-}
+template<typename T, unsigned int S>
+struct H<T,0,S> {
+	static unsigned int exec(const T* p) { return S; }
+};
 
 template<typename T>
 struct runtime_hash {
-	static unsigned int exec(const T* p, unsigned int N) {
-		unsigned int res(0);
+	static unsigned int exec(const T* p, unsigned int N, unsigned seed=0) {
+		unsigned int res(seed);
 		for (unsigned int i(0); i<N; ++i) {
 			res = h(p[i], res);
 		}
@@ -34,8 +32,8 @@ struct runtime_hash {
 	}
 };
 
-#define static_string_hash(x)  compile_time_hash::H<char, array_sizeof(x)-1>::exec(x)
-#define static_wstring_hash(x) compile_time_hash::H<wchar_t, array_sizeof(x)-1>::exec(x)
+#define static_string_hash(x)  H<char, array_sizeof(x)-1>::exec(x)
+#define static_wstring_hash(x) H<wchar_t, array_sizeof(x)-1>::exec(x)
 
 // test program
 #include <iostream>
@@ -69,6 +67,12 @@ int main() {
 		static_string_hash("123456789ABCD") << "\n" <<
 		// Same string, but with wide chars (produces the same result)
 		static_wstring_hash(L"123456789ABCD") << "\n";
+
+	// Use a compile-time string hash as a prefix for a runtime one:
+	static const unsigned int prefix(static_string_hash("bla"));
+	std::cout << runtime_hash<char>::exec("blo",3,prefix)
+	          << " == "
+              << runtime_hash<char>::exec("blablo",6) << "\n";
 	return 0;
 }
 
