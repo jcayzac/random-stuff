@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+ARCHIVE="/tmp/chrome-mac.zip"
+TMPDIR="/tmp/nbc.$$"
+#LATEST=$(curl -s 'http://build.chromium.org/buildbot/snapshots/chromium-rel-mac/LATEST')
+LATEST=$(curl -s 'http://build.chromium.org/f/chromium/continuous/mac/LATEST/REVISION')
+
+ZARGS=/dev/null
+CARGS=""
+
+echo "Downloading Chromium build ${LATEST}… "
+[ -f "$ARCHIVE" ] && rm -rf "$ARCHIVE"
+mkdir -p "$TMPDIR" && \
+if curl $CARGS "http://build.chromium.org/f/chromium/snapshots/chromium-rel-mac/${LATEST}/chrome-mac.zip" >"$ARCHIVE"
+then
+	echo -n "Installing… " && \
+	ln -sf /Applications "$TMPDIR"/chrome-mac && \
+	rm -rf /Applications/Chromium.app && \
+	unzip "$ARCHIVE" -d "$TMPDIR" >$ZARGS 2>&1 && \
+	mv /Applications/Chromium.app/Contents/MacOS/Chromium /Applications/Chromium.app/Contents/MacOS/Chromium.real && \
+	echo -e >/Applications/Chromium.app/Contents/MacOS/Chromium "#!/bin/bash\n\
+cd /Applications/Chromium.app/Contents/MacOS && /Applications/Chromium.app/Contents/MacOS/Chromium.real --enable-webgl --enable-geolocation --allow-file-access-from-files --enable-internal-flash \$@" && \
+	chmod 755 /Applications/Chromium.app/Contents/MacOS/Chromium && \
+	echo 'OK' || echo 'FAILED'
+fi
+rm -rf "$ARCHIVE"
+rm -rf "$TMPDIR"
