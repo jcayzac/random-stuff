@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+P=$(dirname $0)
+INPUT_MD="$1"
+BASE_NAME="${1%*.*}"
+TEMP_HTML="${BASE_NAME}.html"
+OUTPUT_PDF="${BASE_NAME}.pdf"
+
+"$P/multimarkdown" --smart --notes --process-html -t html "${INPUT_MD}" >"${TEMP_HTML}" && \
+"$P/wkhtmltopdf" --outline --enable-smart-shrinking "${TEMP_HTML}" "${OUTPUT_PDF}"
+
