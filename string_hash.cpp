@@ -1,45 +1,95 @@
 /*
-   compile-time hash functions,
+   compile-time and runtime hash functions,
    http://github/jcayzac
+
+   USAGE:
+
+     static_string_hash("some string")
+         Produces a compile-time hash constant
+
+     static_wstring_hash(L"some string")
+         Produces the exact same constant (strings are character type agnostic)
+
+     static_strlen("some string")
+         Produces the compile-time constant 11
+
+     std::string s("some string");
+     string_hash(s)
+         Produces the same value, but it's computed at runtime (use it with
+         non static const strings)
+
+     static_string_hash2(" string", static_string_hash("some"))
+         Produces still the same value, as the hash of "some" is used to seed
+         the hash of " string".
+
+     std::string s(" string");
+     string_hash(s, static_string_hash("some"))
+         Produces the same value, except the prefix is computed at compile-time
+         while the end result is computed at runtime.
+
 */
 
-template <typename T, int N> char ( &_ArraySizeHelper( T (&array)[N] ))[N];
-#define array_sizeof(x) sizeof(_ArraySizeHelper(x))
-static inline unsigned int h(const unsigned int& v, const unsigned int& s) {
+namespace {
+
+template <typename T, int N> char(&static_strlen_helper(T(&_)[N]))[N];
+#define static_strlen(x) (sizeof(static_strlen_helper(x))-1)
+
+static inline unsigned int _combining_function(const unsigned int& v, const unsigned int& s) {
 	return v + 0x9e3779b9U + (s<<6) + (s>>2);
 }
 
-template<typename T, int N, unsigned int S=0>
-struct H {
-	static unsigned int exec(const T* p) {
-		return h(p[N-1], H<T, N-1, S>::exec(p));
+template<typename T, int N, unsigned S=0>
+struct _static_string_hash {
+	static unsigned int hash(const T* p) {
+		return _combining_function(p[N-1], _static_string_hash<T, N-1, S>::hash(p));
 	}
 };
 
 template<typename T, unsigned int S>
-struct H<T,0,S> {
-	static unsigned int exec(const T* p) { return S; }
+struct _static_string_hash<T,0,S> {
+	static unsigned int hash(const T* p) { return S; }
 };
 
 template<typename T>
-struct runtime_hash {
-	static unsigned int exec(const T* p, unsigned int N, unsigned seed=0) {
-		unsigned int res(seed);
-		for (unsigned int i(0); i<N; ++i) {
-			res = h(p[i], res);
-		}
-		return res;
+static unsigned int string_hash(T p, unsigned seed=0) {
+	unsigned int res(seed);
+	unsigned int i(0);
+	while(p[i]) {
+		res = _combining_function(p[i], res);
+		++i;
 	}
-};
+	return res;
+}
 
-#define static_string_hash(x)  H<char, array_sizeof(x)-1>::exec(x)
-#define static_wstring_hash(x) H<wchar_t, array_sizeof(x)-1>::exec(x)
+#define static_string_hash(x)  _static_string_hash<char,    static_strlen(x)>::hash(x)
+#define static_wstring_hash(x) _static_string_hash<wchar_t, static_strlen(x)>::hash(x)
+
+#define static_string_hash2(x, seed) \
+_static_string_hash< \
+    char, \
+    static_strlen(x), \
+    seed \
+>::hash(x)
+
+#define static_wstring_hash2(x, seed) \
+_static_string_hash< \
+    wchar_t, \
+    static_strlen(x), \
+    seed \
+>::hash(x)
+
+} // namespace
+
+
+
+
+
 
 // test program
 #include <iostream>
 
 // If you want to look at the assembly, search for "bla" :)
-static const unsigned int bla1 = static_string_hash("bla");
+static const unsigned int bla1(static_string_hash("bla"));
 static const char bla_as_fixed_size_array[] = "bla"; // you can't use const char*
 static const unsigned int bla2 = static_string_hash(bla_as_fixed_size_array);
 unsigned int bla3() { return static_string_hash("bla"); }
@@ -48,7 +98,7 @@ unsigned int bla4() { return static_string_hash(bla_as_fixed_size_array); }
 int main() {
 	std::cout <<
 		// This is computed at runtime, and will process each character in turn.
-		runtime_hash<char>::exec("bla",3) << "\n" <<
+		string_hash("bla") << "\n" <<
 		// static_string_hash("bla") will produce the following asm instruction on my machine:
 		//     movl    $3411065318, %esi
 		// and on iPhone it will store the value in static storage:
@@ -70,9 +120,9 @@ int main() {
 
 	// Use a compile-time string hash as a prefix for a runtime one:
 	static const unsigned int prefix(static_string_hash("bla"));
-	std::cout << runtime_hash<char>::exec("blo",3,prefix)
+	std::cout << string_hash("blo",prefix)
 	          << " == "
-              << runtime_hash<char>::exec("blablo",6) << "\n";
+              << string_hash(L"blablo") << "\n";
 	return 0;
 }
 
