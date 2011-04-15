@@ -3,9 +3,21 @@
 P=$(dirname $0)
 INPUT_MD="$1"
 BASE_NAME="${1%*.*}"
+TEMP_MD_WITH_CSS="${BASE_NAME}-with-css.md"
 TEMP_HTML="${BASE_NAME}.html"
 OUTPUT_PDF="${BASE_NAME}.pdf"
 
-"$P/multimarkdown" --smart --notes --process-html -t html "${INPUT_MD}" >"${TEMP_HTML}" && \
-"$P/wkhtmltopdf" --outline --enable-smart-shrinking "${TEMP_HTML}" "${OUTPUT_PDF}"
+if [ -r "$2" ]
+then
+	echo '<style>' >"$TEMP_MD_WITH_CSS"
+	cat "$2" >>"$TEMP_MD_WITH_CSS"
+	echo '</style>' >>"$TEMP_MD_WITH_CSS"
+	cat "$INPUT_MD" >>"$TEMP_MD_WITH_CSS"
+else
+	cp "$INPUT_MD" "$TEMP_MD_WITH_CSS"
+fi
+
+"$P/multimarkdown" --smart --notes --process-html -t html "$TEMP_MD_WITH_CSS" >"${TEMP_HTML}" && \
+"$P/wkhtmltopdf" --outline --enable-local-file-access --enable-smart-shrinking "${TEMP_HTML}" "${OUTPUT_PDF}" && \
+rm "$TEMP_MD_WITH_CSS"
 
