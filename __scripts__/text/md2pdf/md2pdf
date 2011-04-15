@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+export NODE_PATH=$(dirname "$0")
+node "${NODE_PATH}/md2pdf.js"
+
