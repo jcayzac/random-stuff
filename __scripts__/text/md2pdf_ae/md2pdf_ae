@@ -7,6 +7,13 @@ TEMP_MD_WITH_CSS="${BASE_NAME}-with-css.md"
 TEMP_HTML="${BASE_NAME}.html"
 OUTPUT_PDF="${BASE_NAME}.pdf"
 
+if [ ! -r "$INPUT_MD" ]
+then
+	echo >&2 "Usage: $(basename "$0") <file.markdown> [<optional.css>]"
+	echo >&2 "       Creates file.html and file.pdf in the same folder"
+	exit 1
+fi
+
 if [ -r "$2" ]
 then
 	echo '<style>' >"$TEMP_MD_WITH_CSS"
