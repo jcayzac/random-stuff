@@ -3,7 +3,6 @@
 P=$(dirname $0)
 INPUT_MD="$1"
 BASE_NAME="${1%*.*}"
-TEMP_MD_WITH_CSS="${BASE_NAME}-with-css.md"
 TEMP_HTML="${BASE_NAME}.html"
 OUTPUT_PDF="${BASE_NAME}.pdf"
 
@@ -14,17 +13,21 @@ then
 	exit 1
 fi
 
-if [ -r "$2" ]
-then
-	echo '<style>' >"$TEMP_MD_WITH_CSS"
-	cat "$2" >>"$TEMP_MD_WITH_CSS"
-	echo '</style>' >>"$TEMP_MD_WITH_CSS"
-	cat "$INPUT_MD" >>"$TEMP_MD_WITH_CSS"
-else
-	cp "$INPUT_MD" "$TEMP_MD_WITH_CSS"
-fi
+cat >"$TEMP_HTML" <<EOT
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style>
+$(cat "$P/default.css")
+$(cat "$2" 2>/dev/null)
+</style>
+</head>
+<body>
+$("$P/multimarkdown" --smart --notes --process-html -t html "$INPUT_MD")
+</body>
+</html>
+EOT
 
-"$P/multimarkdown" --smart --notes --process-html -t html "$TEMP_MD_WITH_CSS" >"${TEMP_HTML}" && \
-"$P/wkhtmltopdf" --outline --enable-local-file-access --enable-smart-shrinking "${TEMP_HTML}" "${OUTPUT_PDF}" && \
-rm "$TEMP_MD_WITH_CSS"
+"$P/wkhtmltopdf" --outline --enable-local-file-access --enable-smart-shrinking "${TEMP_HTML}" "${OUTPUT_PDF}"
 
