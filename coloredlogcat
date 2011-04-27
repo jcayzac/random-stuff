@@ -1,0 +1,180 @@
+#!/usr/bin/env python
+
+import os, sys, re, StringIO
+import fcntl, termios, struct
+import os.path
+
+def get_ndk_path():
+    try:
+        return os.environ['ANDROID_NDK']
+    except:
+        try:
+            return os.environ['NDK_HOME']
+        except:
+            PATH=os.environ['PATH'].split(':')
+            for p in PATH:
+                if os.path.exists("%s/ndk-build"%p):
+                    return p
+
+def find_device_toolchain(ndk):
+    toolchains=os.listdir("%s/toolchains"%ndk)
+    for t in toolchains:
+        if t.find("arm-linux-androideabi-") > -1:
+            return "%s/toolchains/%s" % (ndk, t)
+    return None
+
+NDK_HOME = get_ndk_path()
+NDK_TOOLCHAIN = find_device_toolchain(NDK_HOME)
+
+def detect_android_version():
+    try:
+        return int(os.popen("adb shell getprop ro.build.version.sdk").readline().strip())
+    except:
+        return 8
+SDK_VERSION = detect_android_version()
+
+# use current directory for resolving library names, unless
+# a directory is passed as argument
+PROJECT_ROOT=os.getcwd()
+if len(sys.argv) > 1:
+    # TODO: check it exists and is a folder
+    PROJECT_ROOT=sys.argv[1]
+
+# unpack the current terminal width/height
+# use some good default if stdout is not a terminal but a pipe
+HEIGHT = 25
+WIDTH  = 256
+if os.isatty(sys.stdout.fileno()):
+    data = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, '1234')
+    HEIGHT, WIDTH = struct.unpack('hh',data)
+
+BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
+
+def format(fg=None, bg=None, bright=False, bold=False, dim=False, reset=False):
+    # manually derived from http://en.wikipedia.org/wiki/ANSI_escape_code#Codes
+    codes = []
+    if reset: codes.append("0")
+    else:
+        if not fg is None: codes.append("3%d" % (fg))
+        if not bg is None:
+            if not bright: codes.append("4%d" % (bg))
+            else: codes.append("10%d" % (bg))
+        if bold: codes.append("1")
+        elif dim: codes.append("2")
+        else: codes.append("22")
+    return "\033[%sm" % (";".join(codes))
+
+
+def indent_wrap(message, indent=0, width=80):
+    wrap_area = width - indent
+    messagebuf = StringIO.StringIO()
+    current = 0
+    while current < len(message):
+        next = min(current + wrap_area, len(message))
+        messagebuf.write(message[current:next])
+        if next < len(message):
+            messagebuf.write("\n%s" % (" " * indent))
+        current = next
+    return messagebuf.getvalue()
+
+
+LAST_USED = [RED,GREEN,YELLOW,BLUE,MAGENTA,CYAN,WHITE]
+KNOWN_TAGS = {
+    "dalvikvm": BLUE,
+    "Process": BLUE,
+    "ActivityManager": CYAN,
+    "ActivityThread": CYAN,
+}
+
+def allocate_color(tag):
+    # this will allocate a unique format for the given tag
+    # since we dont have very many colors, we always keep track of the LRU
+    if not tag in KNOWN_TAGS:
+        KNOWN_TAGS[tag] = LAST_USED[0]
+    color = KNOWN_TAGS[tag]
+    LAST_USED.remove(color)
+    LAST_USED.append(color)
+    return color
+
+RULES = {
+    #re.compile(r"([\w\.@]+)=([\w\.@]+)"): r"%s\1%s=%s\2%s" % (format(fg=BLUE), format(fg=GREEN), format(fg=BLUE), format(reset=True)),
+}
+
+TAGTYPE_WIDTH = 3
+TAG_WIDTH = 20
+PROCESS_WIDTH = 8 # 8 or -1
+HEADER_SIZE = TAGTYPE_WIDTH + 1 + TAG_WIDTH + 1 + PROCESS_WIDTH + 1
+
+TAGTYPES = {
+    "V": "%s%s%s " % (format(fg=WHITE, bg=BLACK), "V".center(TAGTYPE_WIDTH), format(reset=True)),
+    "D": "%s%s%s " % (format(fg=BLACK, bg=BLUE), "D".center(TAGTYPE_WIDTH), format(reset=True)),
+    "I": "%s%s%s " % (format(fg=BLACK, bg=GREEN), "I".center(TAGTYPE_WIDTH), format(reset=True)),
+    "W": "%s%s%s " % (format(fg=BLACK, bg=YELLOW), "W".center(TAGTYPE_WIDTH), format(reset=True)),
+    "E": "%s%s%s " % (format(fg=BLACK, bg=RED), "E".center(TAGTYPE_WIDTH), format(reset=True)),
+}
+
+retag   = re.compile("^([A-Z])/([^\(]+)\(([^\)]+)\): (.*)$")
+restack = re.compile(r"(#[0-9]+) +pc +([0-9a-f]+) +\/.+\/(.+\.so)")
+
+while True:
+    try:
+        line = sys.stdin.readline()
+    except KeyboardInterrupt:
+        break
+    if not line: break
+    if len(line) == 0: break
+
+    match = retag.match(line)
+    if not match is None:
+        tagtype, tag, owner, message = match.groups()
+        linebuf = StringIO.StringIO()
+
+        # center process info
+        if PROCESS_WIDTH > 0:
+            owner = owner.strip().center(PROCESS_WIDTH)
+            linebuf.write("%s%s%s " % (format(fg=BLACK, bg=BLACK, bright=True), owner, format(reset=True)))
+
+        # right-align tag title and allocate color if needed
+        tag = tag.strip()
+        color = allocate_color(tag)
+        tag = tag[-TAG_WIDTH:].rjust(TAG_WIDTH)
+        linebuf.write("%s%s %s" % (format(fg=color, dim=False), tag, format(reset=True)))
+
+        # write out tagtype colored edge
+        if not tagtype in TAGTYPES: break
+        linebuf.write(TAGTYPES[tagtype])
+
+        # parse stacks
+        stack_match = restack.match(message.strip())
+        if not stack_match is None:
+            stack_depth, stack_offset, stack_so = stack_match.groups()
+            stack_so_path="%s/obj/local/armeabi-v7a/%s" % (PROJECT_ROOT, stack_so)
+            if not os.path.exists(stack_so_path):
+                stack_so_path="%s/obj/local/armeabi/%s" % (PROJECT_ROOT, stack_so)
+            if not os.path.exists(stack_so_path):
+                stack_so_path="%s/platforms/android-%i/arch-arm/usr/lib/%s" % (NDK_HOME, SDK_VERSION, stack_so)
+            if os.path.exists(stack_so_path):
+                addr2line = os.popen("%s/prebuilt/darwin-x86/bin/arm-linux-androideabi-addr2line -C -f -e %s 0x%s" % (NDK_TOOLCHAIN, stack_so_path, stack_offset))
+                function = addr2line.readline().strip();
+                source   = addr2line.readline().strip().replace("%s/" % PROJECT_ROOT, '').replace(NDK_HOME, '$(NDK)')
+                addr2line.close()
+                message = "%s [%s] %s" % (stack_depth, source, function)
+
+        message = indent_wrap(message, HEADER_SIZE, WIDTH)
+
+        # format tag message using rules
+        for matcher in RULES:
+            replace = RULES[matcher]
+            message = matcher.sub(replace, message)
+
+        linebuf.write(message)
+        line = linebuf.getvalue()
+
+    # catches any broken pipe and gracefully exits
+    try:
+        print line
+    except:
+        break
+
+# vim: set sw=4 ts=4 sts=4 expandtab ff=unix:
+
