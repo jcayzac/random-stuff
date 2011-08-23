@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+
+# We only check Puppet's version, and assume that if it's
+# installed, then the correct version of Facter is also
+# installed.
+
+FACTER_VERSION=(1 6 0)
+PUPPET_VERSION=(2 7 1)
+FACTER_MD5='bf7e384bf247935e973cfd7bf5592dfe'
+PUPPET_MD5='7a0346758af0222dc5e2b2b1a99c44ec'
+
+# Fail on non-zero return code
+set -e
+
+# Adds multiprocess magic
+spawn() {
+    cmd=$(cat)
+    cd ${1:-.} && /usr/bin/env bash -c "$cmd" &
+}
+
+# Convenience methods
+msg() { echo >&2 "$1"; }
+fail() { msg "ERROR: [${1:-...}]___ (>.<°)"; exit ${2:-1}; }
+
+# Check if we have the right Puppet
+puppet-mustinstall() {
+    [ "${1:-0}" \< ${PUPPET_VERSION[0]} ] || \
+    [ "${2:-0}" \< ${PUPPET_VERSION[1]} ] || \
+    [ "${3:-0}" \< ${PUPPET_VERSION[2]} ]
+}
+
+# Install puppet if it's outdated or not found
+if puppet-mustinstall $(puppet --version 2>/dev/null | tr '.' ' ' || true)
+then
+    # Turns (1 2 3) into 1.2.3
+    SAVE_IFS=$IFS
+    IFS='.'
+    FACTER_VERSION_STR="${FACTER_VERSION[*]}"
+    PUPPET_VERSION_STR="${PUPPET_VERSION[*]}"
+    IFS=$SAVE_IFS
+
+    msg "Will install Facter ${FACTER_VERSION_STR} and Puppet ${PUPPET_VERSION_STR}"
+
+    msg "Downloading..."
+    # Downloads facter and puppet, and check their md5sum match.
+    # Also deletes old uncompressed directories while downloading
+    # the archives, if any exists
+    rm /tmp/{puppet,facter}.ok 2>/dev/null || true
+    unset pid
+    while read CMD
+    do
+        spawn /tmp <<< "$CMD"
+        pid[${#pid[*]}]=$!
+    done <<END
+rm -rf puppet-${PUPPET_VERSION_STR} || true
+rm -rf facter-${FACTER_VERSION_STR} || true
+/usr/bin/wget -qN http://puppetlabs.com/downloads/puppet/puppet-${PUPPET_VERSION_STR}.tar.gz && \
+/usr/bin/md5sum -c --status <<<'${PUPPET_MD5}  puppet-${PUPPET_VERSION_STR}.tar.gz' && \
+touch puppet.ok
+/usr/bin/wget -qN http://puppetlabs.com/downloads/facter/facter-${FACTER_VERSION_STR}.tar.gz && \
+/usr/bin/md5sum -c --status <<<'${FACTER_MD5}  facter-${FACTER_VERSION_STR}.tar.gz' && \
+touch facter.ok
+END
+    wait ${pid[@]}
+    [ ! -e /tmp/puppet.ok ] || \
+    [ ! -e /tmp/facter.ok ] && fail "Download failed"
+
+    msg "Uncompressing..."
+    rm /tmp/{puppet,facter}.ok 2>/dev/null || true
+    unset pid
+    while read CMD
+    do
+        spawn /tmp <<< "$CMD"
+        pid[${#pid[*]}]=$!
+    done <<END
+tar xzf facter-${FACTER_VERSION_STR}.tar.gz && touch facter.ok
+tar xzf puppet-${PUPPET_VERSION_STR}.tar.gz && touch puppet.ok
+END
+    wait ${pid[@]}
+    [ ! -e /tmp/puppet.ok ] || \
+    [ ! -e /tmp/facter.ok ] && fail "Decompression failed"
+
+    # Puppet depends on Facter, so we can't parallelize things here
+    msg "Installing Facter ${FACTER_VERSION_STR}..."
+    (   cd /tmp/facter-${FACTER_VERSION_STR} && \
+        sudo ruby install.rb --bindir=/usr/bin --sbindir=/usr/sbin >/dev/null
+    ) || fail "Could not install facter"
+
+    msg "Installing Puppet ${PUPPET_VERSION_STR}..."
+    (   cd /tmp/puppet-${PUPPET_VERSION_STR} && \
+        sudo ruby install.rb --bindir=/usr/bin --sbindir=/usr/sbin >/dev/null
+    ) || fail "Could not install puppet"
+
+    msg "Cleaning up..."
+    unset pid
+    while read CMD
+    do
+        spawn /tmp <<< "$CMD"
+        pid[${#pid[*]}]=$!
+    done <<END
+rm -rf puppet.ok puppet-${PUPPET_VERSION_STR}* || true
+rm -rf facter.ok facter-${FACTER_VERSION_STR}* || true
+END
+    wait ${pid[@]}
+
+    msg "Done!"
+fi
