@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+LIB="icu"
+. "$(dirname $0)/common"
+
+show_progress 5135 svn_export.log "Downloading source code" \
+<<< "svn export http://source.icu-project.org/repos/icu/icu/tags/release-4-8-1 icu"
+
+cd icu/source
+# Remove some noise
+sed -i -e 's/@echo "generating dependency.*$/#removed line/g' config/mh-darwin
+
+ICU_DIR="$(pwd)"
+cd "$ICU_DIR"
+
+mkdir -p build/{macosx,armv7,i386} prefix
+
+echo "Building ICU for MacOSX (needed for cross-compiling):"
+cd "$ICU_DIR/build/macosx"
+show_progress 174 conf.log "    Configure" \
+<<< "$ICU_DIR/runConfigureICU MacOSX"
+show_progress 3613 make.log "    Make" \
+<<< "$MAKE"
+
+CONFFLAGS="\
+--disable-shared \
+--enable-static \
+--disable-renaming \
+--disable-dyload \
+--disable-tests \
+--disable-samples \
+--with-cross-build=$ICU_DIR/build/macosx \
+"
+
+echo "Building ICU for armv7"
+set_armv7
+export CFLAGS="$CFLAGS -DUCONFIG_NO_FILE_IO=1"
+export CXXFLAGS="$CXXFLAGS -DUCONFIG_NO_FILE_IO=1"
+cd "$ICU_DIR/build/armv7"
+show_progress 165 conf.log "    Configure" \
+<<< "$ICU_DIR/configure $CONFFLAGS --host=arm-apple-darwin --prefix=$ICU_DIR/prefix/armv7"
+show_progress 3574 make.log "    Make" \
+<<< "$MAKE"
+show_progress 392 install.log "    Install" \
+<<< "$MAKE install"
+
+echo "Building ICU for i386"
+set_i386
+export CFLAGS="$CFLAGS -DUCONFIG_NO_FILE_IO=1"
+export CXXFLAGS="$CXXFLAGS -DUCONFIG_NO_FILE_IO=1"
+cd "$ICU_DIR/build/i386"
+show_progress 165 conf.log "    Configure" \
+<<< "$ICU_DIR/configure $CONFFLAGS --host=i686-apple-darwin --prefix=$ICU_DIR/prefix/i386"
+show_progress 3574 make.log "    Make" \
+<<< "$MAKE"
+show_progress 392 install.log "    Install" \
+<<< "$MAKE install"
+
+cd "$ICU_DIR/build"
+echo -n "Creating fat library: "
+for LIB in icui18n icule icuuc icuio iculx icutu icudata
+do
+    lipo -create -output "$PREFIX/lib/lib$LIB.a" \
+        -arch armv7 "$ICU_DIR/prefix/armv7/lib/lib$LIB.a" \
+        -arch i386  "$ICU_DIR/prefix/i386/lib/lib$LIB.a"
+done
+echo OK
+
+show_progress 353 copy_headers.log "Copying headers" \
+<<< "ditto $ICU_DIR/prefix/i386/include $PREFIX/include -V 2>&1"
+
+echo "Done."

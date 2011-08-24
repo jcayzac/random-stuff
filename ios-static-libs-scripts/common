@@ -1,0 +1,220 @@
+# Source this file in other scripts
+
+if [ -z "$LIB" ]
+then
+	echo >&2 "Library is not named. Please declare LIB before sourcing 'common'."
+	exit 1
+fi
+
+# Fail and exit on first error
+set -e
+
+MY_TMP="$TMPDIR/build-$LIB.$$"
+mkdir -p "$MY_TMP"
+cd "$MY_TMP"
+
+# Kill process group and delete tmp dir when parent exits
+sig_handler() {
+	#rm -rf "$MY_TMP"
+	kill -s $1 0
+}
+
+for sig in INT TERM EXIT
+do
+	trap "sig_handler $sig" $sig
+done
+
+if [ -z "$1" ]
+then
+    echo >&2 "Usage: $0 <root>"
+    echo >&2 "    Installs the ${LIB} library for iOS in <root>/include and <root>/lib."
+    exit 1
+fi
+PREFIX="$1"
+[ -d "$PREFIX/include" ] && [ -d "$PREFIX/lib" ] || mkdir -p "$PREFIX"/{include,lib} 2>/dev/null
+
+# Color macros
+f() {
+	local esc='['
+	text_reset=${esc}0m
+	text_bold=${esc}1m
+	text_underscore=${esc}4m
+	text_blink=${esc}5m
+	text_reverse=${esc}7m
+	text_concealed=${esc}8m
+
+	local black=0
+	local red=1
+	local green=2
+	local yellow=3
+	local blue=4
+	local magenta=5
+	local cyan=6
+	local white=7
+
+	text_black=${esc}3${black}m
+	text_red=${esc}3${red}m
+	text_green=${esc}3${green}m
+	text_yellow=${esc}3${yellow}m
+	text_blue=${esc}3${blue}m
+	text_magenta=${esc}3${magenta}m
+	text_cyan=${esc}3${cyan}m
+	text_white=${esc}3${white}m
+
+	bg_black=${esc}4${black}m
+	bg_red=${esc}4${red}m
+	bg_green=${esc}4${green}m
+	bg_yellow=${esc}4${yellow}m
+	bg_blue=${esc}4${blue}m
+	bg_magenta=${esc}4${magenta}m
+	bg_cyan=${esc}4${cyan}m
+	bg_white=${esc}4${white}m
+}; f; unset f
+
+# Use GNU make if possible
+MAKE=make
+if which gmake >/dev/null 2>&1
+then
+	MAKE=gmake
+elif which gnumake >/dev/null 2>&1
+then
+	MAKE=gnumake
+fi
+MAKE="$MAKE -j4"
+
+# iOS env
+IPHONE_SDKVERSION=$(
+	xcodebuild -showsdks 2>/dev/null | \
+	sed -n 's#.*-sdk iphoneos\([0-9\.]*\)#\1#p' | \
+	sort -r | \
+	head -n 1
+)
+
+DEV_DIR=$(xcode-select --print-path)
+ARM_PLATFORM_DIR="${DEV_DIR}/Platforms/iPhoneOS.platform"
+SIM_PLATFORM_DIR="${DEV_DIR}/Platforms/iPhoneSimulator.platform"
+ARM_DEV_DIR="${ARM_PLATFORM_DIR}/Developer/usr/bin"
+SIM_DEV_DIR="${SIM_PLATFORM_DIR}/Developer/usr/bin"
+ARM_SDK="${ARM_PLATFORM_DIR}/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk"
+SIM_SDK="${SIM_PLATFORM_DIR}/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk"
+
+set_armv6() {
+	export CC="${ARM_DEV_DIR}/gcc-4.2"
+	export CXX="${ARM_DEV_DIR}/g++-4.2"
+	export AR="${ARM_DEV_DIR}/ar"
+	export NM="${ARM_DEV_DIR}/nm"
+	export RANLIB="${ARM_DEV_DIR}/ranlib"
+	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch armv6 -marm -D_LITTLE_ENDIAN -isysroot $ARM_SDK"
+	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+}
+
+set_armv7() {
+    export CC="${ARM_DEV_DIR}/gcc-4.2"
+    export CXX="${ARM_DEV_DIR}/g++-4.2"
+    export AR="${ARM_DEV_DIR}/ar"
+    export NM="${ARM_DEV_DIR}/nm"
+    export RANLIB="${ARM_DEV_DIR}/ranlib"
+    export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch armv7 -mthumb -D_LITTLE_ENDIAN -isysroot $ARM_SDK"
+    export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+}
+
+set_i386() {
+    export CC="${SIM_DEV_DIR}/gcc-4.2"
+    export CXX="${SIM_DEV_DIR}/g++-4.2"
+    export AR="${SIM_DEV_DIR}/ar"
+    export NM="${SIM_DEV_DIR}/nm"
+    export RANLIB="${SIM_DEV_DIR}/ranlib"
+    export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch i386 -isysroot $SIM_SDK"
+    export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+}
+
+# Download a file
+# Usage:
+# http_fetch <local file path> <remote HTTP URL>
+http_fetch() {
+	FILE="$1"
+	shift
+	if which aria2c >/dev/null 2>&1
+	then
+		aria2c -j5 -x5 -s5 -o "$FILE" $@
+	elif which wget >/dev/null 2>&1
+	then
+		wget -ct0 -O "$FILE" "$1"
+	else
+		curl -L "$1" >"$FILE"
+	fi
+}
+
+# Show percentage as command runs in the background
+# Usage:
+# show_progress <total number of lines> <log file> <title> <command>
+show_progress() {
+	local LINE_COUNT=$1; shift
+	local LOG_FILE="$1"; shift
+	local TEXT="$1"; shift
+	local FIFO=/tmp/log.$$
+	cmd=$(cat)
+	mkfifo $FIFO
+	set -b
+	/usr/bin/env bash -c "$cmd" >>$FIFO 2>"$LOG_FILE" &
+	local PID=$!
+	local I=0
+	while read LINE
+	do
+		echo >>"$LOG_FILE" $LINE
+		local PERCENT=$((I++ * 100 / $LINE_COUNT))
+		# LINE_COUNT is not 100% accurate, so 101% etc could show up
+		(( PERCENT <= 100 )) && printf "\r$TEXT: $PERCENT%%"
+	done <$FIFO || true
+	set +e
+		wait $PID
+		RC=$?
+	set -e
+	rm $FIFO
+	if (( $RC == 0 ))
+	then
+		printf "\r$TEXT: 100%%\n"
+	else
+		echo " *FAILED*"
+		cat <"$LOG_FILE"
+		exit $RC
+	fi
+}
+
+# Spawn commands asynchronously
+# Usage:
+# spawn [working directory] <<<"command"
+spawn() {
+	cmd=$(cat)
+	cd ${1:-.} && /usr/bin/env bash -c "$cmd" &
+}
+
+# Spawn multiple commands concurrently
+# Usage:
+# spawn_multi [working directory] <<EOT
+# command1a && command1b
+# command2
+# command3a || command3b
+# EOT
+spawn_multi() {
+	local pid=()
+	while read CMD
+	do
+		spawn ${1:-.} <<< "$CMD"
+		pid[${#pid[*]}]=$!
+	done
+	wait ${pid[@]}
+}
+
+cat <<EOT
+---------------------------------------------------------------------
+             Library name: $LIB
+                  iOS SDK: $IPHONE_SDKVERSION
+Temporary build directory: $MY_TMP
+        Install directory: $PREFIX
+---------------------------------------------------------------------
+
+EOT
+
+# vim: set filetype=sh fileencodings=utf-8 tabstop=4 shiftwidth=4 noexpandtab :
+

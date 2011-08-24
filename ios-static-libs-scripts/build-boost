@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+LIB="boost"
+. "$(dirname $0)/common"
+
+BOOST_VERSION=1_47_0
+BOOST_MD5=a2dc343f7bc7f83f8941e47ed4a18200
+BOOST_LIBS="\
+chrono \
+iostreams \
+random \
+serialization \
+exception \
+date_time \
+thread \
+signals \
+filesystem \
+regex \
+program_options \
+system \
+"
+
+echo "Downloading tarball"
+http_fetch boost_${BOOST_VERSION}.tar.bz2 \
+http://{cdnetworks-kr-1,cdnetworks-kr-2,ncu,nchc,cdnetworks-us-2}.dl.sourceforge.net/project/boost/boost/${BOOST_VERSION//_/.}/boost_${BOOST_VERSION}.tar.bz2
+md5sum -s -c - <<<"$BOOST_MD5  boost_${BOOST_VERSION}.tar.bz2"
+
+echo "Unpacking"
+tar xvj --strip-components 1 -f boost_${BOOST_VERSION}.tar.bz2 2>&1 | wc -l
+
+echo Writing usr-config
+set_armv7
+cat > tools/build/v2/user-config.jam <<EOF
+using darwin : ${IPHONE_SDKVERSION}~iphone
+   : $CXX $CXXFLAGS
+   : <striper>
+   : <architecture>arm <target-os>iphone
+   ;
+EOF
+set_i386
+cat >> tools/build/v2/user-config.jam <<EOF
+using darwin : ${IPHONE_SDKVERSION}~iphonesim
+   : $CXX $CXXFLAGS
+   : <striper>
+   : <architecture>x86 <target-os>iphone
+   ;
+EOF
+
+# Remove bogus forced armv6 from darwin.jam
+sed -i -e 's/options = -arch armv6.*$//g' tools/build/v2/tools/darwin.jam
+
+# FIXME: this should not be required
+cp -v "${SIM_SDK}/usr/include/crt_externs.h" ./
+
+BOOST_LIBS_COMMA=${BOOST_LIBS// /,}
+echo "Bootstrapping (with libs $BOOST_LIBS_COMMA)"
+./bootstrap.sh --with-libraries=$BOOST_LIBS_COMMA
+
+COMMON_OPTIONS="toolset=darwin target-os=iphone link=static runtime-link=static"
+
+mkdir -p prefix
+ARM_PREFIX="$(pwd)/prefix/arm"
+X86_PREFIX="$(pwd)/prefix/x86"
+
+show_progress 9690 arm.log "Building for device" \
+<<< "./b2 -q -j 4 \
+--prefix=$ARM_PREFIX \
+$COMMON_OPTIONS \
+architecture=arm \
+macosx-version=iphone-${IPHONE_SDKVERSION} \
+install"
+
+show_progress 9660 x86.log "Building for simulator" \
+<<< "./b2 -q -j 4 \
+--prefix=$X86_PREFIX \
+$COMMON_OPTIONS \
+architecture=x86 \
+macosx-version=iphonesim-${IPHONE_SDKVERSION} \
+install"
+
+echo -n "Creating fat library: "
+LIBS=$(cd "$ARM_PREFIX/lib" && ls -1 *.a | tr '\n' ' ')
+for LIB in $LIBS
+do
+    lipo -create -output "$PREFIX/lib/$LIB" \
+        -arch armv7 "$ARM_PREFIX/lib/$LIB" \
+        -arch i386  "$X86_PREFIX/lib/$LIB"
+done
+echo OK
+
+show_progress 17135 copy_headers.log "Copying headers" \
+<<< "ditto $ARM_PREFIX/include $PREFIX/include -V 2>&1"
+
