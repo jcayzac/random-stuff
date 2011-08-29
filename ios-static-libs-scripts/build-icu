@@ -69,11 +69,11 @@ show_progress 392 install.log "    Install" \
 
 cd "$ICU_DIR/build"
 echo -n "Creating fat library: "
-for LIB in icui18n icule icuuc icuio iculx icutu icudata
+for SLIB in icui18n icule icuuc icuio iculx icutu icudata
 do
-    lipo -create -output "$PREFIX/lib/lib$LIB.a" \
-        -arch armv7 "$ICU_DIR/prefix/armv7/lib/lib$LIB.a" \
-        -arch i386  "$ICU_DIR/prefix/i386/lib/lib$LIB.a"
+    lipo -create -output "$PREFIX/lib/lib$SLIB.a" \
+        -arch armv7 "$ICU_DIR/prefix/armv7/lib/lib$SLIB.a" \
+        -arch i386  "$ICU_DIR/prefix/i386/lib/lib$SLIB.a"
 done
 echo OK
 
