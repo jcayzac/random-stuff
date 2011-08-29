@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 LIB="icu"
 VERSION="4.8.1"
-. "$(dirname $0)/common"
+. "$(dirname $0)/common.sh"
 
 #show_progress 5135 svn_export.log "Downloading source code" \
 #<<< "svn export http://source.icu-project.org/repos/icu/icu/tags/release-${VERSION//./-} icu"
@@ -25,6 +25,8 @@ cd "$ICU_DIR"
 mkdir -p build/{macosx,armv7,i386} prefix
 
 echo "Building ICU for MacOSX (needed for cross-compiling):"
+export CC="${CCACHE}gcc"
+export CXX="${CCACHE}g++"
 cd "$ICU_DIR/build/macosx"
 show_progress 174 conf.log "    Configure" \
 <<< "$ICU_DIR/runConfigureICU MacOSX"

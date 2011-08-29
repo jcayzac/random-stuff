@@ -24,7 +24,8 @@ then
 	SCRIPT="$SCRIPT_DIR/${SCRIPT#*/}"
 fi
 
-MY_TMP="$TMPDIR/build-$LIB.$$"
+MY_TMP="$TMPDIR/build-$LIB.$VERSION"
+rm -rf "$MY_TMP" 2>/dev/null
 DISTFILES="$TMPDIR/ios-static-libs-distfiles"
 mkdir -p "$MY_TMP" "$DISTFILES"
 cd "$MY_TMP"
@@ -106,6 +107,12 @@ then
 fi
 MAKE="$MAKE -j4"
 
+CCACHE=""
+if which ccache >/dev/null 2>&1
+then
+	CCACHE="$(which ccache) "
+fi
+
 # iOS env
 IPHONE_SDKVERSION=$(
 	xcodebuild -showsdks 2>/dev/null | \
@@ -123,8 +130,8 @@ ARM_SDK="${ARM_PLATFORM_DIR}/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk"
 SIM_SDK="${SIM_PLATFORM_DIR}/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk"
 
 set_armv7() {
-    export CC="${ARM_DEV_DIR}/gcc-4.2"
-    export CXX="${ARM_DEV_DIR}/g++-4.2"
+    export CC="${CCACHE}${ARM_DEV_DIR}/gcc-4.2"
+    export CXX="${CCACHE}${ARM_DEV_DIR}/g++-4.2"
     export AR="${ARM_DEV_DIR}/ar"
     export NM="${ARM_DEV_DIR}/nm"
     export RANLIB="${ARM_DEV_DIR}/ranlib"
@@ -133,8 +140,8 @@ set_armv7() {
 }
 
 set_i386() {
-    export CC="${SIM_DEV_DIR}/gcc-4.2"
-    export CXX="${SIM_DEV_DIR}/g++-4.2"
+    export CC="${CCACHE}${SIM_DEV_DIR}/gcc-4.2"
+    export CXX="${CCACHE}${SIM_DEV_DIR}/g++-4.2"
     export AR="${SIM_DEV_DIR}/ar"
     export NM="${SIM_DEV_DIR}/nm"
     export RANLIB="${SIM_DEV_DIR}/ranlib"

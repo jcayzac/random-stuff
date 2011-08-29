@@ -4,7 +4,7 @@ VERSION="1.47.0"
 DEPEND="\
 icu:4.8.1 \
 "
-. "$(dirname $0)/common"
+. "$(dirname $0)/common.sh"
 
 BOOST_MD5=a2dc343f7bc7f83f8941e47ed4a18200
 BOOST_LIBS="\

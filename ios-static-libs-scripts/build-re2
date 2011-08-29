@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 LIB="re2"
 VERSION="$(date -u +'%Y%m%d.%H%M%S')"
-. "$(dirname $0)/common"
+. "$(dirname $0)/common.sh"
 
 MAKE_FLAGS="-j4 -s"
 
