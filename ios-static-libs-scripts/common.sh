@@ -24,8 +24,15 @@ then
 	SCRIPT="$SCRIPT_DIR/${SCRIPT#*/}"
 fi
 
-MY_TMP="$TMPDIR/build-$LIB.$VERSION"
-rm -rf "$MY_TMP" 2>/dev/null
+
+RAMDISK_NAME="temp-for-build"
+if [ ! -d "/Volumes/$RAMDISK_NAME" ]
+then
+	diskutil erasevolume HFS+ "$RAMDISK_NAME" $(hdiutil attach -nomount ram://1165430)
+fi
+
+MY_TMP="/Volumes/$RAMDISK_NAME/build-$LIB.$VERSION"
+rm -rf "/Volumes/$RAMDISK_NAME"/build-* 2>/dev/null
 DISTFILES="$TMPDIR/ios-static-libs-distfiles"
 mkdir -p "$MY_TMP" "$DISTFILES"
 cd "$MY_TMP"
