@@ -54,6 +54,7 @@ show_progress 3574 make.log "    Make" \
 <<< "$MAKE"
 show_progress 392 install.log "    Install" \
 <<< "$MAKE install"
+rm -rf "$ICU_DIR/build/armv7"
 
 echo "Building ICU for i386"
 set_i386
@@ -66,6 +67,7 @@ show_progress 3574 make.log "    Make" \
 <<< "$MAKE"
 show_progress 392 install.log "    Install" \
 <<< "$MAKE install"
+rm -rf "$ICU_DIR/build/i386"
 
 cd "$ICU_DIR/build"
 echo -n "Creating fat library: "
@@ -76,6 +78,12 @@ do
         -arch i386  "$ICU_DIR/prefix/i386/lib/lib$SLIB.a"
 done
 echo OK
+rm -rf "$ICU_DIR/prefix/armv7/lib" \
+       "$ICU_DIR/prefix/i386/lib"
 
 show_progress 353 copy_headers.log "Copying headers" \
 <<< "ditto $ICU_DIR/prefix/i386/include $PREFIX/include -V 2>&1"
+
+cd
+rm -rf "$MY_TMP"
+

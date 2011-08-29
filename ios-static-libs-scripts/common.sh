@@ -1,16 +1,19 @@
 # Source this file in other scripts
+ORIG_PWD=$(pwd)
 
 if [ -z "$LIB" ]
 then
 	echo >&2 "Library is not named. Please declare LIB before sourcing 'common'."
 	exit 1
 fi
+readonly LIB
 
 if [ -z "$VERSION" ]
 then
 	echo >&2 "Library [$LIB] is not versioned. Please declare VERSION before sourcing 'common'."
 	exit 1
 fi
+readonly VERSION
 
 # Fail and exit on first error
 set -e
@@ -23,29 +26,34 @@ then
 	popd >/dev/null
 	SCRIPT="$SCRIPT_DIR/${SCRIPT#*/}"
 fi
-
+readonly SCRIPT
 
 RAMDISK_NAME="temp-for-build"
+readonly RAMDISK_NAME
 if [ ! -d "/Volumes/$RAMDISK_NAME" ]
 then
-	diskutil erasevolume HFS+ "$RAMDISK_NAME" $(hdiutil attach -nomount ram://1165430)
+	diskutil erasevolume HFS+ "$RAMDISK_NAME" $(hdiutil attach -nomount ram://2330860)
 fi
 
 MY_TMP="/Volumes/$RAMDISK_NAME/build-$LIB.$VERSION"
+readonly MY_TMP
 rm -rf "/Volumes/$RAMDISK_NAME"/build-* 2>/dev/null
 DISTFILES="$TMPDIR/ios-static-libs-distfiles"
+readonly DISTFILES
 mkdir -p "$MY_TMP" "$DISTFILES"
 cd "$MY_TMP"
 
 # Kill process group and delete tmp dir when parent exits
 sig_handler() {
 	local RC=$? SIG=$1
+	cd "$ORIG_PWD"
 	if [ "$RC" == "0" ] && [ "$SIG" == "EXIT" ]
 	then
 		echo "Installed [$LIB] version [$VERSION] in [$PREFIX]"
+		echo
 		echo "$LIB:$VERSION" >>"$PREFIX/.installed"
 	fi
-	#rm -rf "$MY_TMP"
+	rm -rf "$MY_TMP"
 
 	# Ctrl-C == DIE DIE DIE
 	kill -s ${SIG/INT/KILL} 0
@@ -63,6 +71,7 @@ then
     exit 1
 fi
 PREFIX="$1"
+readonly PREFIX
 [ -d "$PREFIX/include" ] && [ -d "$PREFIX/lib" ] || mkdir -p "$PREFIX"/{include,lib} 2>/dev/null
 
 # Color macros
@@ -296,6 +305,7 @@ solve_dependencies() {
 			echo
 			if [ "$YESNO" == "y" ] || [ "$YESNO" == "Y" ] || [ -z "$YESNO" ]
 			then
+				cd "$ORIG_PWD"
 				bash "${SCRIPT%build-*}build-$OTHER_LIB" "$PREFIX"
 				exec "$SCRIPT" "$PREFIX"
 				exit $?

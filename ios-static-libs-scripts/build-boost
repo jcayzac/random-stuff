@@ -31,6 +31,10 @@ show_progress 39518 unpacking.log "Unpacking" \
 
 echo Writing usr-config
 set_armv7
+if [ ! -z "$CCACHE" ]
+then
+	CXX=${CXX/$CCACHE/}
+fi
 cat > tools/build/v2/user-config.jam <<EOF
 using darwin : ${IPHONE_SDKVERSION}~iphone
    : $CXX $CXXFLAGS
@@ -39,6 +43,10 @@ using darwin : ${IPHONE_SDKVERSION}~iphone
    ;
 EOF
 set_i386
+if [ ! -z "$CCACHE" ]
+then
+	CXX=${CXX/$CCACHE/}
+fi
 cat >> tools/build/v2/user-config.jam <<EOF
 using darwin : ${IPHONE_SDKVERSION}~iphonesim
    : $CXX $CXXFLAGS
@@ -81,13 +89,16 @@ install"
 
 echo -n "Creating fat library: "
 LIBS=$(cd "$ARM_PREFIX/lib" && ls -1 *.a | tr '\n' ' ')
-for LIB in $LIBS
+for SLIB in $LIBS
 do
-    lipo -create -output "$PREFIX/lib/$LIB" \
-        -arch armv7 "$ARM_PREFIX/lib/$LIB" \
-        -arch i386  "$X86_PREFIX/lib/$LIB"
+    lipo -create -output "$PREFIX/lib/$SLIB" \
+        -arch armv7 "$ARM_PREFIX/lib/$SLIB" \
+        -arch i386  "$X86_PREFIX/lib/$SLIB"
 done
 echo OK
 
 show_progress 17135 copy_headers.log "Copying headers" \
 <<< "ditto $ARM_PREFIX/include $PREFIX/include -V 2>&1"
+
+rm -rf "$ARM_PREFIX" "$X86_PREFIX"
+

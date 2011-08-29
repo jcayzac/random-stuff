@@ -31,5 +31,6 @@ rm "$PREFIX"/lib/libre2-{armv7,i386}.a
 echo OK
 
 echo -n "Moving headers into place... "
-cp re2/{re2,set,stringpiece,variadic_function}.h "$PREFIX"/include/
+mkdir -p "$PREFIX"/include/re2
+cp re2/{re2,set,stringpiece,variadic_function}.h "$PREFIX"/include/re2/
 echo OK
