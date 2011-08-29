@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+LIB="protobuf"
+VERSION="2.4.1"
+. "$(dirname $0)/common"
+
+MD5=ed436802019c9e1f40cc750eaf78f318
+
+echo "Downloading tarball"
+http_fetch protobuf-${VERSION}.tar.bz2 $MD5 \
+http://protobuf.googlecode.com/files/protobuf-${VERSION}.tar.bz2
+
+show_progress 580 unpacking.log "Unpacking" \
+<<< "tar xvj --strip-components 1 -f protobuf-${VERSION}.tar.bz2 2>&1"
+
+mkdir -p build/{macosx,armv7,i386}
+ROOT_DIR="$(pwd)"
+
+echo "Building protoc for MacOS X"
+cd "$ROOT_DIR/build/macosx"
+mkdir -p prefix
+show_progress 242 conf.log "    Configure" \
+<<< "$ROOT_DIR/configure --enable-static --disable-shared --prefix=$ROOT_DIR/build/macosx/prefix"
+show_progress 213 build.log "    Build" \
+<<< "$MAKE"
+show_progress 59 install.log "    Install" \
+<<< "$MAKE install"
+mkdir -p "$PREFIX/bin"
+cp "$ROOT_DIR/build/macosx/prefix/bin/protoc" "$PREFIX/bin"/
+PROTOC="$PREFIX/bin/protoc"
+echo "Installed in $PROTOC"
+echo
+
+echo "Building $LIB for armv7"
+set_armv7
+cd "$ROOT_DIR/build/armv7"
+mkdir -p prefix
+show_progress 256 conf.log "    Configure" \
+<<< "$ROOT_DIR/configure \
+--host=arm-apple-darwin \
+--prefix=$ROOT_DIR/build/armv7/prefix \
+--enable-static \
+--disable-shared \
+--with-protoc=$PROTOC"
+show_progress 217 build.log "    Build" \
+<<< "$MAKE"
+show_progress 67 install.log "    Install" \
+<<< "$MAKE install"
+echo
+
+echo "Building $LIB for i386"
+set_i386
+cd "$ROOT_DIR/build/i386"
+mkdir -p prefix
+show_progress 255 conf.log "    Configure" \
+<<< "$ROOT_DIR/configure \
+--host=i686-apple-darwin \
+--prefix=$ROOT_DIR/build/i386/prefix \
+--enable-static \
+--disable-shared \
+--with-protoc=$PROTOC"
+show_progress 217 build.log "    Build" \
+<<< "$MAKE"
+show_progress 67 install.log "    Install" \
+<<< "$MAKE install"
+echo
+
+echo -n "Creating fat library: "
+lipo -create -output "$PREFIX/lib/lib$LIB.a" \
+         -arch armv7 "$ROOT_DIR/build/armv7/prefix/lib/lib$LIB.a" \
+         -arch i386  "$ROOT_DIR/build/i386/prefix/lib/lib$LIB.a"
+echo OK
+
+ditto -V 2>&1 "$ROOT_DIR/build/armv7/prefix/include" "$PREFIX/include" | wc -l

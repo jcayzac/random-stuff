@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 LIB="boost"
+VERSION="1.47.0"
+DEPEND="\
+icu:4.8.1 \
+"
 . "$(dirname $0)/common"
 
-BOOST_VERSION=1_47_0
 BOOST_MD5=a2dc343f7bc7f83f8941e47ed4a18200
 BOOST_LIBS="\
 chrono \
@@ -20,12 +23,11 @@ system \
 "
 
 echo "Downloading tarball"
-http_fetch boost_${BOOST_VERSION}.tar.bz2 \
-http://{cdnetworks-kr-1,cdnetworks-kr-2,ncu,nchc,cdnetworks-us-2}.dl.sourceforge.net/project/boost/boost/${BOOST_VERSION//_/.}/boost_${BOOST_VERSION}.tar.bz2
-md5sum -s -c - <<<"$BOOST_MD5  boost_${BOOST_VERSION}.tar.bz2"
+http_fetch boost_${VERSION//./_}.tar.bz2 $BOOST_MD5 \
+http://{cdnetworks-kr-1,cdnetworks-kr-2,ncu,nchc,cdnetworks-us-2}.dl.sourceforge.net/project/boost/boost/${VERSION}/boost_${VERSION//./_}.tar.bz2
 
-echo "Unpacking"
-tar xvj --strip-components 1 -f boost_${BOOST_VERSION}.tar.bz2 2>&1 | wc -l
+show_progress 39518 unpacking.log "Unpacking" \
+<<< "tar xvj --strip-components 1 -f boost_${VERSION//./_}.tar.bz2 2>&1"
 
 echo Writing usr-config
 set_armv7
@@ -53,7 +55,7 @@ cp -v "${SIM_SDK}/usr/include/crt_externs.h" ./
 
 BOOST_LIBS_COMMA=${BOOST_LIBS// /,}
 echo "Bootstrapping (with libs $BOOST_LIBS_COMMA)"
-./bootstrap.sh --with-libraries=$BOOST_LIBS_COMMA
+./bootstrap.sh --with-libraries=$BOOST_LIBS_COMMA --with-icu=$PREFIX
 
 COMMON_OPTIONS="toolset=darwin target-os=iphone link=static runtime-link=static"
 
@@ -89,4 +91,3 @@ echo OK
 
 show_progress 17135 copy_headers.log "Copying headers" \
 <<< "ditto $ARM_PREFIX/include $PREFIX/include -V 2>&1"
-

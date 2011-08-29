@@ -6,17 +6,41 @@ then
 	exit 1
 fi
 
+if [ -z "$VERSION" ]
+then
+	echo >&2 "Library [$LIB] is not versioned. Please declare VERSION before sourcing 'common'."
+	exit 1
+fi
+
 # Fail and exit on first error
 set -e
 
+SCRIPT="$0"
+if [ "${SCRIPT:0:1}" != "/" ]
+then
+	pushd $(dirname "$SCRIPT") >/dev/null
+	SCRIPT_DIR=$(pwd)
+	popd >/dev/null
+	SCRIPT="$SCRIPT_DIR/${SCRIPT#*/}"
+fi
+
 MY_TMP="$TMPDIR/build-$LIB.$$"
-mkdir -p "$MY_TMP"
+DISTFILES="$TMPDIR/ios-static-libs-distfiles"
+mkdir -p "$MY_TMP" "$DISTFILES"
 cd "$MY_TMP"
 
 # Kill process group and delete tmp dir when parent exits
 sig_handler() {
+	local RC=$? SIG=$1
+	if [ "$RC" == "0" ] && [ "$SIG" == "EXIT" ]
+	then
+		echo "Installed [$LIB] version [$VERSION] in [$PREFIX]"
+		echo "$LIB:$VERSION" >>"$PREFIX/.installed"
+	fi
 	#rm -rf "$MY_TMP"
-	kill -s $1 0
+
+	# Ctrl-C == DIE DIE DIE
+	kill -s ${SIG/INT/KILL} 0
 }
 
 for sig in INT TERM EXIT
@@ -27,7 +51,7 @@ done
 if [ -z "$1" ]
 then
     echo >&2 "Usage: $0 <root>"
-    echo >&2 "    Installs the ${LIB} library for iOS in <root>/include and <root>/lib."
+    echo >&2 "    Installs library ${LIB} ${VERSION} for iOS in <root>/include and <root>/lib."
     exit 1
 fi
 PREFIX="$1"
@@ -98,16 +122,6 @@ SIM_DEV_DIR="${SIM_PLATFORM_DIR}/Developer/usr/bin"
 ARM_SDK="${ARM_PLATFORM_DIR}/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk"
 SIM_SDK="${SIM_PLATFORM_DIR}/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk"
 
-set_armv6() {
-	export CC="${ARM_DEV_DIR}/gcc-4.2"
-	export CXX="${ARM_DEV_DIR}/g++-4.2"
-	export AR="${ARM_DEV_DIR}/ar"
-	export NM="${ARM_DEV_DIR}/nm"
-	export RANLIB="${ARM_DEV_DIR}/ranlib"
-	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch armv6 -marm -D_LITTLE_ENDIAN -isysroot $ARM_SDK"
-	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
-}
-
 set_armv7() {
     export CC="${ARM_DEV_DIR}/gcc-4.2"
     export CXX="${ARM_DEV_DIR}/g++-4.2"
@@ -130,10 +144,21 @@ set_i386() {
 
 # Download a file
 # Usage:
-# http_fetch <local file path> <remote HTTP URL>
+# http_fetch <local file name> <remote HTTP URL>
 http_fetch() {
 	FILE="$1"
 	shift
+	MD5SUM="$1"
+	shift
+	if [ -f "$DISTFILES/$FILE" ]
+	then
+		if md5sum -s -c - <<< "$MD5SUM  $DISTFILES/$FILE"
+		then
+			ln -sf "${DISTFILES}/${FILE}"
+			return
+		fi
+	fi
+
 	if which aria2c >/dev/null 2>&1
 	then
 		aria2c -j5 -x5 -s5 -o "$FILE" $@
@@ -143,6 +168,8 @@ http_fetch() {
 	else
 		curl -L "$1" >"$FILE"
 	fi
+	md5sum -s -c - <<<"$MD5SUM  $FILE"
+	cp "$FILE" "$DISTFILES"/
 }
 
 # Show percentage as command runs in the background
@@ -206,9 +233,76 @@ spawn_multi() {
 	wait ${pid[@]}
 }
 
+REQUIRED_VERSION=
+version_check_failed() {
+	for x in $REQUIRED_VERSION
+	do
+		if [ "$1" \< "$x" ]
+		then
+			return 0
+		fi
+		shift
+	done
+	return 1
+}
+
+solve_dependencies() {
+	# Parse installed packages
+	local -A INSTALLED
+	if [ -f "$PREFIX/.installed" ]
+	then
+		while read LINE
+		do
+			echo INSTALLED[${LINE%:*}]=${LINE#*:}
+			INSTALLED[${LINE%:*}]=${LINE#*:}
+		done <"$PREFIX/.installed"
+	fi
+
+	# Parse requirements
+	local OTHER_LIB OTHER_VERSION NEED_INSTALL
+	for DEP in $DEPEND
+	do
+		OTHER_LIB="${DEP%:*}"
+		OTHER_VERSION="${DEP#*:}"
+		NEED_INSTALL=""
+		REQUIRED_VERSION=${OTHER_VERSION//./ }
+		HAS_VERSION=${INSTALLED[$OTHER_LIB]}
+		echo -n "Dependency check: $LIB needs ${OTHER_LIB}-${OTHER_VERSION}: "
+		if [ -z "$HAS_VERSION" ]
+		then
+			NEED_INSTALL=y
+			echo "NOT FOUND"
+		elif version_check_failed ${HAS_VERSION//./ }
+		then
+			NEED_INSTALL=y
+			echo "OUTDATED (Has v$HAS_VERSION)"
+		fi
+		if [ ! -z "$NEED_INSTALL" ]
+		then
+			read -sn 1 -p "Install $OTHER_LIB v$OTHER_VERSION [Y/n]? " YESNO
+			echo
+			if [ "$YESNO" == "y" ] || [ "$YESNO" == "Y" ] || [ -z "$YESNO" ]
+			then
+				bash "${SCRIPT%build-*}build-$OTHER_LIB" "$PREFIX"
+				exec "$SCRIPT" "$PREFIX"
+				exit $?
+			else
+				echo
+				echo "Failed (missing requirement)."
+				return 1
+			fi
+		else
+			echo "FOUND"
+		fi
+	done
+}
+
+solve_dependencies
+
 cat <<EOT
 ---------------------------------------------------------------------
              Library name: $LIB
+          Library version: $VERSION
                   iOS SDK: $IPHONE_SDKVERSION
 Temporary build directory: $MY_TMP
         Install directory: $PREFIX

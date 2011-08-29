@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 LIB="icu"
+VERSION="4.8.1"
 . "$(dirname $0)/common"
 
 show_progress 5135 svn_export.log "Downloading source code" \
-<<< "svn export http://source.icu-project.org/repos/icu/icu/tags/release-4-8-1 icu"
+<<< "svn export http://source.icu-project.org/repos/icu/icu/tags/release-${VERSION//./-} icu"
 
 cd icu/source
 # Remove some noise
@@ -67,5 +68,3 @@ echo OK
 
 show_progress 353 copy_headers.log "Copying headers" \
 <<< "ditto $ICU_DIR/prefix/i386/include $PREFIX/include -V 2>&1"
-
-echo "Done."

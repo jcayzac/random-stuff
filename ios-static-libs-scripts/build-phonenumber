@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+LIB="phonenumber"
+VERSION="$(date -u +'%Y%m%d.%H%M%S')"
+DEPEND="\
+boost:1.47.0 \
+icu:4.8.1 \
+protobuf:2.4.1 \
+re2:20110828-000000 \
+"
+. "$(dirname $0)/common"
+
+show_progress 1066 svn_export.log "Downloading source code" \
+<<< "svn export http://libphonenumber.googlecode.com/svn/trunk phonenumber"
+
+cd phonenumber
+
+ROOT_DIR="$(pwd)"
+cd "$ROOT_DIR"
+
+echo "Generating Protocol Buffers C++ classes"
+"$PREFIX/bin/protoc" \
+--cpp_out="${ROOT_DIR}/cpp/src/phonenumbers" \
+--proto_path="${ROOT_DIR}/resources" \
+"${ROOT_DIR}/resources"/{phonemetadata,phonenumber}.proto
+
+echo "Generating Metadata C++ classes"
+java -jar "${ROOT_DIR}/tools/java/cpp-build/target/cpp-build-1.0-SNAPSHOT-jar-with-dependencies.jar" \
+BuildMetadataCppFromXml \
+"${ROOT_DIR}/resources/PhoneNumberMetaData.xml" \
+${ROOT_DIR}/cpp/src/phonenumbers \
+metadata
+
+SOURCE_FILES="\
+base/string_piece.cc \
+phonenumbers/default_logger.cc \
+phonenumbers/logger.cc \
+phonenumbers/phonemetadata.pb.cc \
+phonenumbers/phonenumber.cc \
+phonenumbers/phonenumber.pb.cc \
+phonenumbers/phonenumberutil.cc \
+phonenumbers/regexp_cache.cc \
+phonenumbers/stringutil.cc \
+phonenumbers/utf/rune.c \
+phonenumbers/utf/unicodetext.cc \
+phonenumbers/utf/unilib.cc \
+phonenumbers/regexp_adapter_re2.cc \
+phonenumbers/metadata.cc \
+"
+
+HEADERS="\
+phonenumbers/logger.h \
+phonenumbers/phonenumber.pb.h \
+phonenumbers/phonenumberutil.h \
+base/basictypes.h \
+base/scoped_ptr.h \
+base/memory/singleton.h \
+base/synchronization/lock.h \
+"
+
+mkdir -p build/{armv7,i386}
+
+compile() {
+	local objs=()
+	for SRC in $SOURCE_FILES
+	do
+		SRC_FILE="${SRC##*/}"
+		DIR="${SRC%/*}"
+		OBJ_FILE="${SRC_FILE%.*}.o"
+		$CXX -o $OBJ_FILE $CXXFLAGS -I$ROOT_DIR/cpp/src -I$PREFIX/include -DUSE_RE2 -c $ROOT_DIR/cpp/src/$SRC
+		objs[${#objs[*]}]="$OBJ_FILE"
+	done
+	$AR crus libphonenumber.a ${objs[@]}
+}
+
+echo "Building $LIB for armv7"
+set_armv7
+cd "$ROOT_DIR/build/armv7"
+compile
+
+echo "Building $LIB for i386"
+set_i386
+cd "$ROOT_DIR/build/i386"
+compile
+
+cd "$ROOT_DIR/build"
+echo -n "Creating fat library: "
+lipo -create -output "$PREFIX/lib/lib$LIB.a" \
+         -arch armv7 "$ROOT_DIR/build/armv7/lib$LIB.a" \
+         -arch i386  "$ROOT_DIR/build/i386/lib$LIB.a"
+echo OK
+
+for HDR in $HEADERS
+do
+	HDR_FILE="${HDR##*/}"
+	DIR="${HDR%/*}"
+	mkdir -p "$PREFIX/include/google/$DIR"
+	cp $ROOT_DIR/cpp/src/$HDR "$PREFIX/include/google/$DIR"/
+done
