@@ -267,7 +267,6 @@ solve_dependencies() {
 	then
 		while read LINE
 		do
-			echo INSTALLED[${LINE%:*}]=${LINE#*:}
 			INSTALLED[${LINE%:*}]=${LINE#*:}
 		done <"$PREFIX/.installed"
 	fi
