@@ -65,10 +65,13 @@ show_progress 67 install.log "    Install" \
 <<< "$MAKE install"
 echo
 
-echo -n "Creating fat library: "
-lipo -create -output "$PREFIX/lib/lib$LIB.a" \
-         -arch armv7 "$ROOT_DIR/build/armv7/prefix/lib/lib$LIB.a" \
-         -arch i386  "$ROOT_DIR/build/i386/prefix/lib/lib$LIB.a"
+echo -n "Creating fat libraries: "
+for SLIB in protobuf protobuf-lite protoc
+do
+	lipo -create -output "$PREFIX/lib/lib$SLIB.a" \
+	         -arch armv7 "$ROOT_DIR/build/armv7/prefix/lib/lib$SLIB.a" \
+	         -arch i386  "$ROOT_DIR/build/i386/prefix/lib/lib$SLIB.a"
+done
 echo OK
 
 ditto -V 2>&1 "$ROOT_DIR/build/armv7/prefix/include" "$PREFIX/include" | wc -l
