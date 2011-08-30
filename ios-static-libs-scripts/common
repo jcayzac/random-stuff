@@ -1,16 +1,81 @@
+#!/usr/bin/env bash
 # Source this file in other scripts
+
+if ! (( ${BASH_VERSINFO:-0} >= 4 ))
+then
+	echo "Build system needs Bash >= 4.0"
+	echo "Please install it with MacPorts first:"
+	echo
+	echo "    sudo port selfupdate"
+	echo "    sudo port install bash"
+	echo
+	echo "...then verify it's in your PATH!"
+	echo
+	echo "Exiting..."
+	exit 1
+fi
+
+# Color macros
+f() {
+    local esc='['
+    text_reset=${esc}0m
+    text_bold=${esc}1m
+    text_underscore=${esc}4m
+    text_blink=${esc}5m
+    text_reverse=${esc}7m
+    text_concealed=${esc}8m
+
+    local black=0
+    local red=1
+    local green=2
+    local yellow=3
+    local blue=4
+    local magenta=5
+    local cyan=6
+    local white=7
+
+    text_black=${esc}3${black}m
+    text_red=${esc}3${red}m
+    text_green=${esc}3${green}m
+    text_yellow=${esc}3${yellow}m
+    text_blue=${esc}3${blue}m
+    text_magenta=${esc}3${magenta}m
+    text_cyan=${esc}3${cyan}m
+    text_white=${esc}3${white}m
+
+    bg_black=${esc}4${black}m
+    bg_red=${esc}4${red}m
+    bg_green=${esc}4${green}m
+    bg_yellow=${esc}4${yellow}m
+    bg_blue=${esc}4${blue}m
+    bg_magenta=${esc}4${magenta}m
+    bg_cyan=${esc}4${cyan}m
+    bg_white=${esc}4${white}m
+}; f; unset f
+
+msg() {
+	echo "${text_bold}$@${text_reset}"
+}; readonly msg
+
+if [ "${0#*/}" == "common" ]
+then
+	msg "'common' is to be sourced in other scripts, not invoked directly. Exiting."
+	exit 1
+fi
+
 ORIG_PWD=$(pwd)
+readonly ORIG_PWD
 
 if [ -z "$LIB" ]
 then
-	echo >&2 "Library is not named. Please declare LIB before sourcing 'common'."
+	msg "Library is not named. Please declare LIB before sourcing 'common'."
 	exit 1
 fi
 readonly LIB
 
 if [ -z "$VERSION" ]
 then
-	echo >&2 "Library [$LIB] is not versioned. Please declare VERSION before sourcing 'common'."
+	msg "Library [$LIB] is not versioned. Please declare VERSION before sourcing 'common'."
 	exit 1
 fi
 readonly VERSION
@@ -32,6 +97,7 @@ RAMDISK_NAME="temp-for-build"
 readonly RAMDISK_NAME
 if [ ! -d "/Volumes/$RAMDISK_NAME" ]
 then
+	# Use 1GB for build (should be enough for boost and icu)
 	diskutil erasevolume HFS+ "$RAMDISK_NAME" $(hdiutil attach -nomount ram://2330860)
 fi
 
@@ -49,7 +115,7 @@ sig_handler() {
 	cd "$ORIG_PWD"
 	if [ "$RC" == "0" ] && [ "$SIG" == "EXIT" ]
 	then
-		echo "Installed [$LIB] version [$VERSION] in [$PREFIX]"
+		msg "${text_green}Installed [$LIB] version [$VERSION] in [$PREFIX]"
 		echo
 		echo "$LIB:$VERSION" >>"$PREFIX/.installed"
 	fi
@@ -66,51 +132,13 @@ done
 
 if [ -z "$1" ]
 then
-    echo >&2 "Usage: $0 <root>"
-    echo >&2 "    Installs library ${LIB} ${VERSION} for iOS in <root>/include and <root>/lib."
+    msg "Usage: $0 <root>"
+    msg "    Installs library ${LIB} ${VERSION} for iOS in <root>/include and <root>/lib."
     exit 1
 fi
 PREFIX="$1"
 readonly PREFIX
 [ -d "$PREFIX/include" ] && [ -d "$PREFIX/lib" ] || mkdir -p "$PREFIX"/{include,lib} 2>/dev/null
-
-# Color macros
-f() {
-	local esc='['
-	text_reset=${esc}0m
-	text_bold=${esc}1m
-	text_underscore=${esc}4m
-	text_blink=${esc}5m
-	text_reverse=${esc}7m
-	text_concealed=${esc}8m
-
-	local black=0
-	local red=1
-	local green=2
-	local yellow=3
-	local blue=4
-	local magenta=5
-	local cyan=6
-	local white=7
-
-	text_black=${esc}3${black}m
-	text_red=${esc}3${red}m
-	text_green=${esc}3${green}m
-	text_yellow=${esc}3${yellow}m
-	text_blue=${esc}3${blue}m
-	text_magenta=${esc}3${magenta}m
-	text_cyan=${esc}3${cyan}m
-	text_white=${esc}3${white}m
-
-	bg_black=${esc}4${black}m
-	bg_red=${esc}4${red}m
-	bg_green=${esc}4${green}m
-	bg_yellow=${esc}4${yellow}m
-	bg_blue=${esc}4${blue}m
-	bg_magenta=${esc}4${magenta}m
-	bg_cyan=${esc}4${cyan}m
-	bg_white=${esc}4${white}m
-}; f; unset f
 
 # Use GNU make if possible
 MAKE=make
@@ -289,7 +317,7 @@ solve_dependencies() {
 		NEED_INSTALL=""
 		REQUIRED_VERSION=${OTHER_VERSION//./ }
 		HAS_VERSION=${INSTALLED[$OTHER_LIB]}
-		echo -n "Dependency check: $LIB needs ${OTHER_LIB}-${OTHER_VERSION}: "
+		echo -n "[Dependency check] $LIB needs ${OTHER_LIB} >= ${OTHER_VERSION}: "
 		if [ -z "$HAS_VERSION" ]
 		then
 			NEED_INSTALL=y
@@ -301,7 +329,7 @@ solve_dependencies() {
 		fi
 		if [ ! -z "$NEED_INSTALL" ]
 		then
-			read -sn 1 -p "Install $OTHER_LIB v$OTHER_VERSION [Y/n]? " YESNO
+			read -sn 1 -p "${text_bold}Install $OTHER_LIB v$OTHER_VERSION [Y/n]? ${text_reset}" YESNO
 			echo
 			if [ "$YESNO" == "y" ] || [ "$YESNO" == "Y" ] || [ -z "$YESNO" ]
 			then
@@ -311,7 +339,7 @@ solve_dependencies() {
 				exit $?
 			else
 				echo
-				echo "Failed (missing requirement)."
+				msg "Failed (missing requirement)."
 				return 1
 			fi
 		else
@@ -323,14 +351,14 @@ solve_dependencies() {
 solve_dependencies
 
 cat <<EOT
----------------------------------------------------------------------
+${text_bold}---------------------------------------------------------------------
              Library name: $LIB
           Library version: $VERSION
                   iOS SDK: $IPHONE_SDKVERSION
 Temporary build directory: $MY_TMP
         Install directory: $PREFIX
 ---------------------------------------------------------------------
-
+${text_reset}
 EOT
 
 # vim: set filetype=sh fileencodings=utf-8 tabstop=4 shiftwidth=4 noexpandtab :

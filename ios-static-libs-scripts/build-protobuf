@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 LIB="protobuf"
 VERSION="2.4.1"
-. "$(dirname $0)/common.sh"
+. "$(dirname $0)/common"
 
 MD5=ed436802019c9e1f40cc750eaf78f318
 

@@ -7,7 +7,7 @@ icu:4.8.1 \
 protobuf:2.4.1 \
 re2:20110828-000000 \
 "
-. "$(dirname $0)/common.sh"
+. "$(dirname $0)/common"
 
 show_progress 1066 svn_export.log "Downloading source code" \
 <<< "svn export http://libphonenumber.googlecode.com/svn/trunk phonenumber"
