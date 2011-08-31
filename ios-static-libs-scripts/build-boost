@@ -24,7 +24,7 @@ system \
 
 echo "Downloading tarball"
 http_fetch boost_${VERSION//./_}.tar.bz2 $BOOST_MD5 \
-http://{cdnetworks-kr-1,cdnetworks-kr-2,ncu,nchc,cdnetworks-us-2}.dl.sourceforge.net/project/boost/boost/${VERSION}/boost_${VERSION//./_}.tar.bz2
+sourceforge:boost/boost/${VERSION}/boost_${VERSION//./_}.tar.bz2
 
 show_progress 39518 unpacking.log "Unpacking" \
 <<< "tar xvj --strip-components 1 -f boost_${VERSION//./_}.tar.bz2 2>&1"

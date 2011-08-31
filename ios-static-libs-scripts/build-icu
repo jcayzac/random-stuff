@@ -10,7 +10,7 @@ MD5=af36f635271a239d76d038d6cf8da8df
 
 echo "Downloading tarball"
 http_fetch icu4c-${VERSION//./_}-src.tgz $MD5 \
-http://{cdnetworks-kr-1,cdnetworks-kr-2,ncu,nchc,cdnetworks-us-2}.dl.sourceforge.net/project/icu/ICU4C/$VERSION/icu4c-${VERSION//./_}-src.tgz
+sourceforge:icu/ICU4C/$VERSION/icu4c-${VERSION//./_}-src.tgz
 
 show_progress 3380 unpacking.log "Unpacking" \
 <<< "tar xvz --strip-components 1 -f icu4c-${VERSION//./_}-src.tgz 2>&1"
