@@ -115,13 +115,25 @@ cd "$MY_TMP"
 sig_handler() {
 	local RC=$? SIG=$1
 	cd "$ORIG_PWD"
-	if [ "$RC" == "0" ] && [ "$SIG" == "EXIT" ]
+	if [ "$SIG" == "EXIT" ]
 	then
-		msg "${text_green}Installed [$LIB] version [$VERSION] in [$PREFIX]"
-		echo
-		echo "$LIB:$VERSION" >>"$PREFIX/.installed"
+		case "$RC" in
+		0)
+			msg "${text_green}Installed [$LIB] version [$VERSION] in [$PREFIX]"
+			echo
+			echo "$LIB:$VERSION" >>"$PREFIX/.installed"
+			;;
+		*)
+			msg "${text_white}${bg_red}ERROR: [$BASH_COMMAND] exited with return code $RC"
+			;;
+		esac
 	fi
-	rm -rf "$MY_TMP"
+
+	while [ -d "$MY_TMP" ]
+	do
+		# This might fail if a background job is creating files
+		rm -rf $MY_TMP 2>/dev/null || true
+	done
 
 	# Ctrl-C == DIE DIE DIE
 	kill -s ${SIG/INT/KILL} 0
@@ -290,20 +302,14 @@ show_progress() {
 		local PERCENT=$((I++ * 100 / $LINE_COUNT))
 		# LINE_COUNT is not 100% accurate, so 101% etc could show up
 		(( PERCENT <= 100 )) && printf "\r$TEXT: $PERCENT%%"
-	done <$FIFO || true
+	done <$FIFO
 	set +e
 		wait $PID
-		RC=$?
+		local RC=$?
 	set -e
 	rm $FIFO
-	if (( $RC == 0 ))
-	then
-		printf "\r$TEXT: 100%%\n"
-	else
-		echo " *FAILED*"
-		cat <"$LOG_FILE"
-		exit $RC
-	fi
+	(( $RC == 0 ))
+	printf "\r$TEXT: 100%%\n"
 }
 
 # Spawn commands asynchronously
@@ -331,7 +337,6 @@ spawn_multi() {
 	wait ${pid[@]}
 }
 
-REQUIRED_VERSION=
 version_check_failed() {
 	for x in $REQUIRED_VERSION
 	do

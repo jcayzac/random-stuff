@@ -65,8 +65,6 @@ do
 		-arch i386  "$ICU_DIR/prefix/i386/lib/lib$SLIB.a"
 done
 echo OK
-rm -rf "$ICU_DIR/prefix/armv7/lib" \
-	   "$ICU_DIR/prefix/i386/lib"
 
 show_progress 353 copy_headers.log "Copying headers" \
 <<< "ditto $ICU_DIR/prefix/i386/include $PREFIX/include -V 2>&1"
