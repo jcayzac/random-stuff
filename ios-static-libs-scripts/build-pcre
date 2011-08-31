@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+LIB="pcre"
+VERSION="8.13"
+. "$(dirname $0)/common"
+
+MD5="5e595edbcded141813fa1a10dbce05cb"
+
+echo "Downloading tarball"
+http_fetch pcre-${VERSION}.tar.bz2 $MD5 \
+"ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-${VERSION}.tar.bz2"
+# Hmm 8.13 is not on sourceforge yet? :-(
+#sourceforge:pcre/pcre/${VERSION}/pcre-${VERSION}.tar.bz2
+
+show_progress 210 unpacking.log "Unpacking" \
+<<< "tar xvj --strip-components 1 -f pcre-${VERSION}.tar.bz2 2>&1"
+
+for arch in armv7 i386
+do
+	echo "Building $LIB for $arch"
+	BUILD_DIR="$MY_TMP/build/$arch"
+	mkdir -p "$BUILD_DIR/prefix"
+	cd "$BUILD_DIR"
+	set_$arch
+	show_progress 192 conf.log "	Configure" \
+	<<< "$MY_TMP/configure \
+--host=$HOST \
+--prefix=$MY_TMP/build/$arch/prefix \
+--enable-static \
+--disable-shared \
+--enable-utf8"
+	show_progress 109 build.log "	Build" \
+	<<< "$MAKE"
+	show_progress 172 install.log "	Install" \
+	<<< "$MAKE install"
+	$MAKE distclean >/dev/null 2>&1
+	echo
+done
+
+echo -n "Creating fat libraries: "
+for SLIB in pcre pcrecpp pcreposix
+do
+	lipo -create -output "$PREFIX/lib/lib$SLIB.a" \
+			 -arch armv7 "$MY_TMP/build/armv7/prefix/lib/lib$SLIB.a" \
+			 -arch i386  "$MY_TMP/build/i386/prefix/lib/lib$SLIB.a"
+done
+echo OK
+
+ditto "$MY_TMP/build/armv7/prefix/include" "$PREFIX/include"
+
