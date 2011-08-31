@@ -166,6 +166,9 @@ then
 	exit 1
 fi
 
+# It's needed for some builds (boost, ...)
+IPHONE_SDKVERSION=$(xcodebuild 2>/dev/null -sdk iphoneos -version SDKVersion)
+
 set_armv7() {
 	export CC="${CCACHE}$(xcodebuild 2>/dev/null -sdk iphoneos -find gcc)"
 	export CXX="${CCACHE}$(xcodebuild 2>/dev/null -sdk iphoneos -find g++)"
