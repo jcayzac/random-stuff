@@ -85,8 +85,8 @@ compile
 cd "$ROOT_DIR/build"
 echo -n "Creating fat library: "
 lipo -create -output "$PREFIX/lib/lib$LIB.a" \
-         -arch armv7 "$ROOT_DIR/build/armv7/lib$LIB.a" \
-         -arch i386  "$ROOT_DIR/build/i386/lib$LIB.a"
+		 -arch armv7 "$ROOT_DIR/build/armv7/lib$LIB.a" \
+		 -arch i386  "$ROOT_DIR/build/i386/lib$LIB.a"
 echo OK
 
 for HDR in $HEADERS

@@ -3,9 +3,6 @@ LIB="icu"
 VERSION="4.8.1"
 . "$(dirname $0)/common"
 
-#show_progress 5135 svn_export.log "Downloading source code" \
-#<<< "svn export http://source.icu-project.org/repos/icu/icu/tags/release-${VERSION//./-} icu"
-
 MD5=af36f635271a239d76d038d6cf8da8df
 
 echo "Downloading tarball"
@@ -28,9 +25,9 @@ echo "Building ICU for MacOSX (needed for cross-compiling):"
 export CC="${CCACHE}gcc"
 export CXX="${CCACHE}g++"
 cd "$ICU_DIR/build/macosx"
-show_progress 174 conf.log "    Configure" \
+show_progress 174 conf.log "	Configure" \
 <<< "$ICU_DIR/runConfigureICU MacOSX"
-show_progress 3613 make.log "    Make" \
+show_progress 3613 make.log "	Make" \
 <<< "$MAKE"
 
 CONFFLAGS="\
@@ -43,47 +40,34 @@ CONFFLAGS="\
 --with-cross-build=$ICU_DIR/build/macosx \
 "
 
-echo "Building ICU for armv7"
-set_armv7
-export CFLAGS="$CFLAGS -DUCONFIG_NO_FILE_IO=1"
-export CXXFLAGS="$CXXFLAGS -DUCONFIG_NO_FILE_IO=1"
-cd "$ICU_DIR/build/armv7"
-show_progress 165 conf.log "    Configure" \
-<<< "$ICU_DIR/configure $CONFFLAGS --host=arm-apple-darwin --prefix=$ICU_DIR/prefix/armv7"
-show_progress 3574 make.log "    Make" \
-<<< "$MAKE"
-show_progress 392 install.log "    Install" \
-<<< "$MAKE install"
-rm -rf "$ICU_DIR/build/armv7"
-
-echo "Building ICU for i386"
-set_i386
-export CFLAGS="$CFLAGS -DUCONFIG_NO_FILE_IO=1"
-export CXXFLAGS="$CXXFLAGS -DUCONFIG_NO_FILE_IO=1"
-cd "$ICU_DIR/build/i386"
-show_progress 165 conf.log "    Configure" \
-<<< "$ICU_DIR/configure $CONFFLAGS --host=i686-apple-darwin --prefix=$ICU_DIR/prefix/i386"
-show_progress 3574 make.log "    Make" \
-<<< "$MAKE"
-show_progress 392 install.log "    Install" \
-<<< "$MAKE install"
-rm -rf "$ICU_DIR/build/i386"
+for arch in armv7 i386
+do
+	echo "Building ICU for $arch"
+	set_$arch
+	export CFLAGS="$CFLAGS -DUCONFIG_NO_FILE_IO=1"
+	export CXXFLAGS="$CXXFLAGS -DUCONFIG_NO_FILE_IO=1"
+	cd "$ICU_DIR/build/$arch"
+	show_progress 165 conf.log "	Configure" \
+	<<< "$ICU_DIR/configure $CONFFLAGS --host=$HOST --prefix=$ICU_DIR/prefix/$arch"
+	show_progress 3574 make.log "	Make" \
+	<<< "$MAKE"
+	show_progress 392 install.log "	Install" \
+	<<< "$MAKE install"
+	rm -rf "$ICU_DIR/build/$arch"
+done
 
 cd "$ICU_DIR/build"
 echo -n "Creating fat library: "
 for SLIB in icui18n icule icuuc icuio iculx icutu icudata
 do
-    lipo -create -output "$PREFIX/lib/lib$SLIB.a" \
-        -arch armv7 "$ICU_DIR/prefix/armv7/lib/lib$SLIB.a" \
-        -arch i386  "$ICU_DIR/prefix/i386/lib/lib$SLIB.a"
+	lipo -create -output "$PREFIX/lib/lib$SLIB.a" \
+		-arch armv7 "$ICU_DIR/prefix/armv7/lib/lib$SLIB.a" \
+		-arch i386  "$ICU_DIR/prefix/i386/lib/lib$SLIB.a"
 done
 echo OK
 rm -rf "$ICU_DIR/prefix/armv7/lib" \
-       "$ICU_DIR/prefix/i386/lib"
+	   "$ICU_DIR/prefix/i386/lib"
 
 show_progress 353 copy_headers.log "Copying headers" \
 <<< "ditto $ICU_DIR/prefix/i386/include $PREFIX/include -V 2>&1"
-
-cd
-rm -rf "$MY_TMP"
 

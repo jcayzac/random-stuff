@@ -9,40 +9,37 @@ msg "Downloading tarball"
 http_fetch bullet-${VERSION}.tgz $MD5 \
 "http://bullet.googlecode.com/files/bullet-${VERSION}.tgz"
 
-function compile() {
-	local ARCH=$1
-	set_$ARCH
+show_progress 2380 unpacking.log "Unpacking" \
+<<< "tar xvz --strip-components 1 -f bullet-${VERSION}.tgz 2>&1"
 
-	local BUILD_DIR="$MY_TMP/build/$ARCH"
+for arch in armv7 i386
+do
+	set_$arch
+
+	local BUILD_DIR="$MY_TMP/build/$arch"
 	rm -rf "$BUILD_DIR" 2>/dev/null || true
 	mkdir -p "$BUILD_DIR"
 	cd "$BUILD_DIR"
 
 	COUNT=$(find "$MY_TMP/src"/{LinearMath,BulletCollision,BulletDynamics} -iname "*.cpp" | wc -l)
 
-	show_progress $COUNT compile-${ARCH}.log "Compiling for $ARCH" \
+	show_progress $COUNT compile.log "Compiling for $arch" \
 	<<< "find \"$MY_TMP/src\"/{LinearMath,BulletCollision,BulletDynamics} -iname \"*.cpp\" -print0 | \
 		xargs 2>&1 -0 -t -P 4 -I % ${CXX} -c ${CXXFLAGS} -DNDEBUG -I \"$MY_TMP/src\" %"
 	(( $COUNT == $(ls -1 *.o | wc -l) ))
 
-	echo "Creating static library for $ARCH"
+	echo "Creating static library for $arch"
 	"${AR}" crus libbullet.a *.o >/dev/null 2>&1 && rm *.o
-}
-
-show_progress 2380 unpacking.log "Unpacking" \
-<<< "tar xvz --strip-components 1 -f bullet-${VERSION}.tgz 2>&1"
-
-compile armv7
-compile i386
+done
 
 msg "Creating fat library"
 lipo -create -output "$PREFIX/lib/libbullet.a" \
-         -arch armv7 "$MY_TMP/build/armv7/libbullet.a" \
-         -arch i386  "$MY_TMP/build/i386/libbullet.a"
+		 -arch armv7 "$MY_TMP/build/armv7/libbullet.a" \
+		 -arch i386  "$MY_TMP/build/i386/libbullet.a"
 
 cd "$MY_TMP/src"
 HEADERS=$(find {.,LinearMath,BulletCollision,BulletDynamics} -iname "*.h" | wc -l)
 show_progress $HEADERS copy-headers.log "Installing headers" \
 <<< "find {.,LinearMath,BulletCollision,BulletDynamics} -iname \"*.h\" -print0 | \
-     cpio -0 -pdmuv \"${PREFIX}/include/bullet\" 2>&1"
+	 cpio -0 -pdmuv \"${PREFIX}/include/bullet\" 2>&1"
 

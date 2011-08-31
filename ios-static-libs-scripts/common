@@ -6,8 +6,8 @@ then
 	echo "Build system needs Bash >= 4.0"
 	echo "Please install it with MacPorts first:"
 	echo
-	echo "    sudo port selfupdate"
-	echo "    sudo port install bash"
+	echo "	sudo port selfupdate"
+	echo "	sudo port install bash"
 	echo
 	echo "...then verify it's in your PATH!"
 	echo
@@ -19,40 +19,40 @@ fi
 
 # Color macros
 f() {
-    local esc='['
-    text_reset=${esc}0m
-    text_bold=${esc}1m
-    text_underscore=${esc}4m
-    text_blink=${esc}5m
-    text_reverse=${esc}7m
-    text_concealed=${esc}8m
+	local esc='['
+	text_reset=${esc}0m
+	text_bold=${esc}1m
+	text_underscore=${esc}4m
+	text_blink=${esc}5m
+	text_reverse=${esc}7m
+	text_concealed=${esc}8m
 
-    local black=0
-    local red=1
-    local green=2
-    local yellow=3
-    local blue=4
-    local magenta=5
-    local cyan=6
-    local white=7
+	local black=0
+	local red=1
+	local green=2
+	local yellow=3
+	local blue=4
+	local magenta=5
+	local cyan=6
+	local white=7
 
-    text_black=${esc}3${black}m
-    text_red=${esc}3${red}m
-    text_green=${esc}3${green}m
-    text_yellow=${esc}3${yellow}m
-    text_blue=${esc}3${blue}m
-    text_magenta=${esc}3${magenta}m
-    text_cyan=${esc}3${cyan}m
-    text_white=${esc}3${white}m
+	text_black=${esc}3${black}m
+	text_red=${esc}3${red}m
+	text_green=${esc}3${green}m
+	text_yellow=${esc}3${yellow}m
+	text_blue=${esc}3${blue}m
+	text_magenta=${esc}3${magenta}m
+	text_cyan=${esc}3${cyan}m
+	text_white=${esc}3${white}m
 
-    bg_black=${esc}4${black}m
-    bg_red=${esc}4${red}m
-    bg_green=${esc}4${green}m
-    bg_yellow=${esc}4${yellow}m
-    bg_blue=${esc}4${blue}m
-    bg_magenta=${esc}4${magenta}m
-    bg_cyan=${esc}4${cyan}m
-    bg_white=${esc}4${white}m
+	bg_black=${esc}4${black}m
+	bg_red=${esc}4${red}m
+	bg_green=${esc}4${green}m
+	bg_yellow=${esc}4${yellow}m
+	bg_blue=${esc}4${blue}m
+	bg_magenta=${esc}4${magenta}m
+	bg_cyan=${esc}4${cyan}m
+	bg_white=${esc}4${white}m
 }; f; unset f
 
 msg() {
@@ -134,9 +134,9 @@ done
 
 if [ -z "$1" ]
 then
-    msg "Usage: $0 <root>"
-    msg "    Installs library ${LIB} ${VERSION} for iOS in <root>/include and <root>/lib."
-    exit 1
+	msg "Usage: $0 <root>"
+	msg "	Installs library ${LIB} ${VERSION} for iOS in <root>/include and <root>/lib."
+	exit 1
 fi
 PREFIX="$1"
 readonly PREFIX
@@ -176,23 +176,33 @@ ARM_SDK="${ARM_PLATFORM_DIR}/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk"
 SIM_SDK="${SIM_PLATFORM_DIR}/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk"
 
 set_armv7() {
-    export CC="${CCACHE}${ARM_DEV_DIR}/gcc-4.2"
-    export CXX="${CCACHE}${ARM_DEV_DIR}/g++-4.2"
-    export AR="${ARM_DEV_DIR}/ar"
-    export NM="${ARM_DEV_DIR}/nm"
-    export RANLIB="${ARM_DEV_DIR}/ranlib"
-    export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch armv7 -mthumb -D_LITTLE_ENDIAN -isysroot $ARM_SDK -I$PREFIX/include"
-    export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+	export CC="${CCACHE}${ARM_DEV_DIR}/gcc-4.2"
+	export CXX="${CCACHE}${ARM_DEV_DIR}/g++-4.2"
+	export AR="${ARM_DEV_DIR}/ar"
+	export AS="${ARM_DEV_DIR}/as"
+	export NM="${ARM_DEV_DIR}/nm"
+	export RANLIB="${ARM_DEV_DIR}/ranlib"
+	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch armv7 -mthumb -D_LITTLE_ENDIAN -isysroot $ARM_SDK -I$PREFIX/include"
+	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+	export CPPFLAGS="$CFLAGS"
+	export CPP="$CC -E"
+	export CXXCPP="$CXX -E"
+	export HOST="arm-apple-darwin"
 }
 
 set_i386() {
-    export CC="${CCACHE}${SIM_DEV_DIR}/gcc-4.2"
-    export CXX="${CCACHE}${SIM_DEV_DIR}/g++-4.2"
-    export AR="${SIM_DEV_DIR}/ar"
-    export NM="${SIM_DEV_DIR}/nm"
-    export RANLIB="${SIM_DEV_DIR}/ranlib"
-    export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch i386 -isysroot $SIM_SDK -I$PREFIX/include"
-    export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+	export CC="${CCACHE}${SIM_DEV_DIR}/gcc-4.2"
+	export CXX="${CCACHE}${SIM_DEV_DIR}/g++-4.2"
+	export AR="${SIM_DEV_DIR}/ar"
+	export AS="${SIM_DEV_DIR}/as"
+	export NM="${SIM_DEV_DIR}/nm"
+	export RANLIB="${SIM_DEV_DIR}/ranlib"
+	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch i386 -isysroot $SIM_SDK -I$PREFIX/include"
+	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+	export CPPFLAGS="$CFLAGS"
+	export CPP="$CC -E"
+	export CXXCPP="$CXX -E"
+	export HOST="i686-apple-darwin"
 }
 
 # Download a file
@@ -230,14 +240,31 @@ http_fetch() {
 		esac
 	done
 
+	# aria2c and axel can download from multiple mirrors simultaneously
 	if which aria2c >/dev/null 2>&1
 	then
 		aria2c -j5 -x5 -s5 -o "$FILE" ${URLS[@]}
+	elif which axel >/dev/null 2>&1
+	then
+		axel -a -n 5 -o "$FILE" ${URLS[@]}
 	elif which wget >/dev/null 2>&1
 	then
 		wget -ct0 -O "$FILE" "$URLS"
-	else
+	elif which lwp-download >/dev/null 2>&1
+	then
+		lwp-download "$URLS" "$FILE"
+	elif [ -z "${URLS/#http*/}" ] && which curl >/dev/null 2>&1
+	then
 		curl -L "$URLS" >"$FILE"
+	elif [ -z "${URLS/#ftp*/}" ] && which ftp >/dev/null 2>&1
+	then
+		ftp -p -o "$FILE" "$URLS"
+	else
+		msg "Can't find any download tool! I suggest you install aria2:"
+		msg
+		msg "  sudo port selfupdate"
+		msg "  sudo port install aria2"
+		exit 1
 	fi
 	md5sum -s -c - <<<"$MD5SUM  $FILE"
 	cp "$FILE" "$DISTFILES"/

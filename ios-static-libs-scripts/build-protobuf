@@ -19,11 +19,11 @@ echo "Building protoc for MacOS X"
 cd "$ROOT_DIR/build/macosx"
 mkdir -p prefix
 export CC="${CCACHE}gcc" CXX="${CCACHE}g++"
-show_progress 242 conf.log "    Configure" \
+show_progress 242 conf.log "	Configure" \
 <<< "$ROOT_DIR/configure --enable-static --disable-shared --prefix=$ROOT_DIR/build/macosx/prefix"
-show_progress 213 build.log "    Build" \
+show_progress 213 build.log "	Build" \
 <<< "$MAKE"
-show_progress 59 install.log "    Install" \
+show_progress 59 install.log "	Install" \
 <<< "$MAKE install"
 mkdir -p "$PREFIX/bin"
 cp "$ROOT_DIR/build/macosx/prefix/bin/protoc" "$PREFIX/bin"/
@@ -31,47 +31,34 @@ PROTOC="$PREFIX/bin/protoc"
 echo "Installed in $PROTOC"
 echo
 
-echo "Building $LIB for armv7"
-set_armv7
-cd "$ROOT_DIR/build/armv7"
-mkdir -p prefix
-show_progress 256 conf.log "    Configure" \
-<<< "$ROOT_DIR/configure \
---host=arm-apple-darwin \
---prefix=$ROOT_DIR/build/armv7/prefix \
+for arch in armv7 i386
+do
+	echo "Building $LIB for $arch"
+	set_$arch
+	cd "$ROOT_DIR/build/$arch"
+	mkdir -p prefix
+	show_progress 256 conf.log "	Configure" \
+	<<< "$ROOT_DIR/configure \
+--host=$HOST \
+--prefix=$ROOT_DIR/build/$arch/prefix \
 --enable-static \
 --disable-shared \
 --with-protoc=$PROTOC"
-show_progress 217 build.log "    Build" \
-<<< "$MAKE"
-show_progress 67 install.log "    Install" \
-<<< "$MAKE install"
-echo
-
-echo "Building $LIB for i386"
-set_i386
-cd "$ROOT_DIR/build/i386"
-mkdir -p prefix
-show_progress 255 conf.log "    Configure" \
-<<< "$ROOT_DIR/configure \
---host=i686-apple-darwin \
---prefix=$ROOT_DIR/build/i386/prefix \
---enable-static \
---disable-shared \
---with-protoc=$PROTOC"
-show_progress 217 build.log "    Build" \
-<<< "$MAKE"
-show_progress 67 install.log "    Install" \
-<<< "$MAKE install"
-echo
+	show_progress 217 build.log "	Build" \
+	<<< "$MAKE"
+	show_progress 67 install.log "	Install" \
+	<<< "$MAKE install"
+	echo
+done
 
 echo -n "Creating fat libraries: "
 for SLIB in protobuf protobuf-lite protoc
 do
 	lipo -create -output "$PREFIX/lib/lib$SLIB.a" \
-	         -arch armv7 "$ROOT_DIR/build/armv7/prefix/lib/lib$SLIB.a" \
-	         -arch i386  "$ROOT_DIR/build/i386/prefix/lib/lib$SLIB.a"
+			 -arch armv7 "$ROOT_DIR/build/armv7/prefix/lib/lib$SLIB.a" \
+			 -arch i386  "$ROOT_DIR/build/i386/prefix/lib/lib$SLIB.a"
 done
 echo OK
 
-ditto -V 2>&1 "$ROOT_DIR/build/armv7/prefix/include" "$PREFIX/include" | wc -l
+ditto "$ROOT_DIR/build/armv7/prefix/include" "$PREFIX/include"
+

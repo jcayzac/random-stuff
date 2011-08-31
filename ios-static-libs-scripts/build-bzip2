@@ -23,8 +23,8 @@ done
 
 msg "Creating fat library"
 lipo -create -output "$PREFIX"/lib/libbz2.a \
-         -arch armv7 libbz2-armv7.a \
-         -arch i386  libbz2-i386.a
+		 -arch armv7 libbz2-armv7.a \
+		 -arch i386  libbz2-i386.a
 
 msg "Copying header file"
 cp bzlib.h "${PREFIX}/include/"

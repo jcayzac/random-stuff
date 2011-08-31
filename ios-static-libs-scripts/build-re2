@@ -7,26 +7,25 @@ REV="7007b2180a421524eaf64392058111fc8950f4ac"
 
 if ! hg clone -r $REV https://code.google.com/p/re2 >/dev/null 2>&1
 then
-    echo >&2 "Failed to clone [https://code.google.com/p/re2] into [$MY_TMP/re2]"
-    exit 1
+	echo >&2 "Failed to clone [https://code.google.com/p/re2] into [$MY_TMP/re2]"
+	exit 1
 fi
 
 cd re2
 
-set_armv7
-$MAKE -s clean
-show_progress 27 armv7.log "Building ARMv7 library" <<< "$MAKE CC='$CC' AR='$AR' NM='$NM' CXXFLAGS='$CXXFLAGS' obj/libre2.a"
-mv obj/libre2.a "$PREFIX"/lib/libre2-armv7.a
-
-set_i386
-$MAKE -s clean
-show_progress 27 i386.log "Building i386 library" <<< "$MAKE CC='$CC' AR='$AR' NM='$NM' CXXFLAGS='$CXXFLAGS' obj/libre2.a"
-mv obj/libre2.a "$PREFIX"/lib/libre2-i386.a
+for arch in armv7 i386
+do
+	set_$arch
+	$MAKE -s clean
+	show_progress 27 ${arch}.log "Building for $arch" \
+	<<< "$MAKE CC='$CC' AR='$AR' NM='$NM' CXXFLAGS='$CXXFLAGS' obj/libre2.a"
+	mv obj/libre2.a "$PREFIX"/lib/libre2-${arch}.a
+done
 
 echo -n "Creating fat library... "
 lipo -create -output "$PREFIX"/lib/libre2.a \
-    -arch armv7 "$PREFIX"/lib/libre2-armv7.a \
-    -arch i386  "$PREFIX"/lib/libre2-i386.a
+	-arch armv7 "$PREFIX"/lib/libre2-armv7.a \
+	-arch i386  "$PREFIX"/lib/libre2-i386.a
 rm "$PREFIX"/lib/libre2-{armv7,i386}.a
 echo OK
 
@@ -34,3 +33,4 @@ echo -n "Moving headers into place... "
 mkdir -p "$PREFIX"/include/re2
 cp re2/{re2,set,stringpiece,variadic_function}.h "$PREFIX"/include/re2/
 echo OK
+

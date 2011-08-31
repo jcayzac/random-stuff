@@ -91,9 +91,9 @@ echo -n "Creating fat library: "
 LIBS=$(cd "$ARM_PREFIX/lib" && ls -1 *.a | tr '\n' ' ')
 for SLIB in $LIBS
 do
-    lipo -create -output "$PREFIX/lib/$SLIB" \
-        -arch armv7 "$ARM_PREFIX/lib/$SLIB" \
-        -arch i386  "$X86_PREFIX/lib/$SLIB"
+	lipo -create -output "$PREFIX/lib/$SLIB" \
+		-arch armv7 "$ARM_PREFIX/lib/$SLIB" \
+		-arch i386  "$X86_PREFIX/lib/$SLIB"
 done
 echo OK
 
