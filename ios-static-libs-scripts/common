@@ -160,29 +160,21 @@ then
 fi
 
 # iOS env
-IPHONE_SDKVERSION=$(
-	xcodebuild -showsdks 2>/dev/null | \
-	sed -n 's#.*-sdk iphoneos\([0-9\.]*\)#\1#p' | \
-	sort -r | \
-	head -n 1
-)
-
-DEV_DIR=$(xcode-select --print-path)
-ARM_PLATFORM_DIR="${DEV_DIR}/Platforms/iPhoneOS.platform"
-SIM_PLATFORM_DIR="${DEV_DIR}/Platforms/iPhoneSimulator.platform"
-ARM_DEV_DIR="${ARM_PLATFORM_DIR}/Developer/usr/bin"
-SIM_DEV_DIR="${SIM_PLATFORM_DIR}/Developer/usr/bin"
-ARM_SDK="${ARM_PLATFORM_DIR}/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk"
-SIM_SDK="${SIM_PLATFORM_DIR}/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk"
+if ! which xcodebuild >/dev/null 2>&1
+then
+	msg "Can't find xcodebuild in your PATH! Aborting."
+	exit 1
+fi
 
 set_armv7() {
-	export CC="${CCACHE}${ARM_DEV_DIR}/gcc-4.2"
-	export CXX="${CCACHE}${ARM_DEV_DIR}/g++-4.2"
-	export AR="${ARM_DEV_DIR}/ar"
-	export AS="${ARM_DEV_DIR}/as"
-	export NM="${ARM_DEV_DIR}/nm"
-	export RANLIB="${ARM_DEV_DIR}/ranlib"
-	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch armv7 -mthumb -D_LITTLE_ENDIAN -isysroot $ARM_SDK -I$PREFIX/include"
+	export CC="${CCACHE}$(xcodebuild 2>/dev/null -sdk iphoneos -find gcc)"
+	export CXX="${CCACHE}$(xcodebuild 2>/dev/null -sdk iphoneos -find g++)"
+	export AR="$(xcodebuild 2>/dev/null -sdk iphoneos -find ar)"
+	export AS="$(xcodebuild 2>/dev/null -sdk iphoneos -find as)"
+	export NM="$(xcodebuild 2>/dev/null -sdk iphoneos -find nm)"
+	export RANLIB="$(xcodebuild 2>/dev/null -sdk iphoneos -find ranlib)"
+	export SDK_DIR="$(xcodebuild 2>/dev/null -version -sdk iphoneos Path)"
+	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch armv7 -mthumb -D_LITTLE_ENDIAN -isysroot $SDK_DIR -I$PREFIX/include"
 	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
 	export CPPFLAGS="$CFLAGS"
 	export CPP="$CC -E"
@@ -191,13 +183,14 @@ set_armv7() {
 }
 
 set_i386() {
-	export CC="${CCACHE}${SIM_DEV_DIR}/gcc-4.2"
-	export CXX="${CCACHE}${SIM_DEV_DIR}/g++-4.2"
-	export AR="${SIM_DEV_DIR}/ar"
-	export AS="${SIM_DEV_DIR}/as"
-	export NM="${SIM_DEV_DIR}/nm"
-	export RANLIB="${SIM_DEV_DIR}/ranlib"
-	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch i386 -isysroot $SIM_SDK -I$PREFIX/include"
+	export CC="${CCACHE}$(xcodebuild 2>/dev/null -sdk iphonesimulator -find gcc)"
+	export CXX="${CCACHE}$(xcodebuild 2>/dev/null -sdk iphonesimulator -find g++)"
+	export AR="$(xcodebuild 2>/dev/null -sdk iphonesimulator -find ar)"
+	export AS="$(xcodebuild 2>/dev/null -sdk iphonesimulator -find as)"
+	export NM="$(xcodebuild 2>/dev/null -sdk iphonesimulator -find nm)"
+	export RANLIB="$(xcodebuild 2>/dev/null -sdk iphonesimulator -find ranlib)"
+	export SDK_DIR="$(xcodebuild 2>/dev/null -version -sdk iphonesimulator Path)"
+	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch i386 -isysroot $SDK_DIR -I$PREFIX/include"
 	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
 	export CPPFLAGS="$CFLAGS"
 	export CPP="$CC -E"
