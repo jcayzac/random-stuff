@@ -174,7 +174,9 @@ set_armv7() {
 	export NM="$(xcodebuild 2>/dev/null -sdk iphoneos -find nm)"
 	export RANLIB="$(xcodebuild 2>/dev/null -sdk iphoneos -find ranlib)"
 	export SDK_DIR="$(xcodebuild 2>/dev/null -version -sdk iphoneos Path)"
-	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch armv7 -mthumb -D_LITTLE_ENDIAN -isysroot $SDK_DIR -I$PREFIX/include"
+	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -fstrict-aliasing -ffast-math \
+-arch armv7 -mthumb -mcpu=cortex-a8 -mfloat-abi=softfp -mfpu=neon -ftree-vectorize -D_LITTLE_ENDIAN \
+-isysroot $SDK_DIR -I$PREFIX/include"
 	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
 	export CPPFLAGS="$CFLAGS"
 	export CPP="$CC -E"
@@ -190,7 +192,9 @@ set_i386() {
 	export NM="$(xcodebuild 2>/dev/null -sdk iphonesimulator -find nm)"
 	export RANLIB="$(xcodebuild 2>/dev/null -sdk iphonesimulator -find ranlib)"
 	export SDK_DIR="$(xcodebuild 2>/dev/null -version -sdk iphonesimulator Path)"
-	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -arch i386 -isysroot $SDK_DIR -I$PREFIX/include"
+	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -fstrict-aliasing -ffast-math \
+-arch i386 -march=i686 -msse3 \
+-isysroot $SDK_DIR -I$PREFIX/include"
 	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
 	export CPPFLAGS="$CFLAGS"
 	export CPP="$CC -E"
