@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 LIB="phonenumber"
-VERSION="$(date -u +'%Y%m%d.%H%M%S')"
+VERSION="340"
 DEPEND="\
 boost:1.47.0 \
 icu:4.8.1 \
 protobuf:2.4.1 \
-re2:20110828-000000 \
+re2:20110721.000000 \
 "
 . "$(dirname $0)/common"
 
 show_progress 1066 svn_export.log "Downloading source code" \
-<<< "svn export http://libphonenumber.googlecode.com/svn/trunk phonenumber"
+<<< "svn export -r $VERSION http://libphonenumber.googlecode.com/svn/trunk phonenumber"
 
 cd phonenumber
 
@@ -69,7 +69,7 @@ compile() {
 		$CXX -o $OBJ_FILE $CXXFLAGS -I$ROOT_DIR/cpp/src -I$PREFIX/include -DUSE_RE2 -c $ROOT_DIR/cpp/src/$SRC
 		objs[${#objs[*]}]="$OBJ_FILE"
 	done
-	$AR crus libphonenumber.a ${objs[@]}
+	$AR crus lib$LIB.a ${objs[@]}
 }
 
 echo "Building $LIB for armv7"
@@ -96,3 +96,4 @@ do
 	mkdir -p "$PREFIX/include/google/$DIR"
 	cp $ROOT_DIR/cpp/src/$HDR "$PREFIX/include/google/$DIR"/
 done
+

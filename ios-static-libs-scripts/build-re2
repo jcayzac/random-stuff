@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 LIB="re2"
-VERSION="$(date -u +'%Y%m%d.%H%M%S')"
+# This should be set to the submit date of the commit below
+VERSION="20110721.000000"
+REV="7007b2180a421524eaf64392058111fc8950f4ac"
 . "$(dirname $0)/common"
 
 MAKE_FLAGS="-j4 -s"
 
-if ! hg clone https://code.google.com/p/re2 >/dev/null 2>&1
+if ! hg clone -r $REV https://code.google.com/p/re2 >/dev/null 2>&1
 then
     echo >&2 "Failed to clone [https://code.google.com/p/re2] into [$MY_TMP/re2]"
     exit 1
