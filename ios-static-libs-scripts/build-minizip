@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+LIB="minizip"
+VERSION="1.2.5"
+DEPEND="\
+bzip2:1.0.6 \
+"
+. "$(dirname $0)/common"
+
+MD5="c735eab2d659a96e5a594c9e8541ad63"
+
+msg "Downloading tarball"
+http_fetch zlib-${VERSION}.tar.gz $MD5 \
+"sourceforge:libpng/zlib/${VERSION}/zlib-${VERSION}.tar.gz"
+
+show_progress 265 unpacking.log "Unpacking" \
+<<< "tar xvz --strip-components 1 -f zlib-${VERSION}.tar.gz 2>&1"
+
+cd contrib/minizip
+msg "Building"
+
+SRC=(unzip zip ioapi mztools)
+
+for arch in armv7 i386
+do
+	set_$arch
+	$CC -c $CFLAGS -I. -DSTDC -DNOUNCRYPT -DNOCRYPT -DNO_ADDFILEINEXISTINGZIP -DHAVE_BZIP2 ${SRC[@]/%/.c}
+	$AR crus libminizip-${arch}.a ${SRC[@]/%/.o}
+	rm ${SRC[@]/%/.o}
+done
+
+msg "Installing"
+
+lipo -create -output "$PREFIX/lib/libminizip.a" \
+         -arch armv7 "libminizip-armv7.a" \
+         -arch i386  "libminizip-i386.a"
+
+mkdir -p "$PREFIX/include/minizip"
+cp ${SRC[@]/%/.h} "$PREFIX/include/minizip/"
+
