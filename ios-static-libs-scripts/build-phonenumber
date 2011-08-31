@@ -66,7 +66,7 @@ compile() {
 		SRC_FILE="${SRC##*/}"
 		DIR="${SRC%/*}"
 		OBJ_FILE="${SRC_FILE%.*}.o"
-		$CXX -o $OBJ_FILE $CXXFLAGS -I$ROOT_DIR/cpp/src -I$PREFIX/include -DUSE_RE2 -c $ROOT_DIR/cpp/src/$SRC
+		$CXX -o $OBJ_FILE $CXXFLAGS -I$ROOT_DIR/cpp/src -DUSE_RE2 -c $ROOT_DIR/cpp/src/$SRC
 		objs[${#objs[*]}]="$OBJ_FILE"
 	done
 	$AR crus lib$LIB.a ${objs[@]}
