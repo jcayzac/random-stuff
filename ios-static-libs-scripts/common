@@ -66,7 +66,9 @@ then
 fi
 
 ORIG_PWD=$(pwd)
+ORIG_PATH="$PATH"
 readonly ORIG_PWD
+readonly ORIG_PATH
 
 if [ -z "$LIB" ]
 then
@@ -115,6 +117,7 @@ cd "$MY_TMP"
 sig_handler() {
 	local RC=$? SIG=$1
 	cd "$ORIG_PWD"
+	export PATH="$ORIG_PATH"
 	if [ "$SIG" == "EXIT" ]
 	then
 		case "$RC" in
@@ -181,39 +184,35 @@ fi
 # It's needed for some builds (boost, ...)
 IPHONE_SDKVERSION=$(xcodebuild 2>/dev/null -sdk iphoneos -version SDKVersion)
 
-set_armv7() {
-	export CC="${CCACHE}$(xcodebuild 2>/dev/null -sdk iphoneos -find gcc)"
-	export CXX="${CCACHE}$(xcodebuild 2>/dev/null -sdk iphoneos -find g++)"
-	export AR="$(xcodebuild 2>/dev/null -sdk iphoneos -find ar)"
-	export AS="$(xcodebuild 2>/dev/null -sdk iphoneos -find as)"
-	export NM="$(xcodebuild 2>/dev/null -sdk iphoneos -find nm)"
-	export RANLIB="$(xcodebuild 2>/dev/null -sdk iphoneos -find ranlib)"
-	export SDK_DIR="$(xcodebuild 2>/dev/null -version -sdk iphoneos Path)"
-	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -fstrict-aliasing -ffast-math \
--arch armv7 -mthumb -mcpu=cortex-a8 -mfloat-abi=softfp -mfpu=neon -ftree-vectorize -D_LITTLE_ENDIAN \
--isysroot $SDK_DIR -I$PREFIX/include"
-	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
-	export CPPFLAGS="$CFLAGS"
+set_sdk() {
+	export SDK="$1"
+	export CC="${CCACHE}$(xcodebuild 2>/dev/null -sdk $SDK -find gcc)"
+	export CXX="${CCACHE}$(xcodebuild 2>/dev/null -sdk $SDK -find g++)"
+	export AR="$(xcodebuild 2>/dev/null -sdk $SDK -find ar)"
+	export AS="$(xcodebuild 2>/dev/null -sdk $SDK -find as)"
+	export NM="$(xcodebuild 2>/dev/null -sdk $SDK -find nm)"
+	export RANLIB="$(xcodebuild 2>/dev/null -sdk $SDK -find ranlib)"
+	export SDK_DIR="$(xcodebuild 2>/dev/null -version -sdk $SDK Path)"
+	export PLATFORM_DIR="$(xcodebuild 2>/dev/null -version -sdk $SDK PlatformPath)"
+	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -fstrict-aliasing -ffast-math -isysroot $SDK_DIR -I$PREFIX/include"
 	export CPP="$CC -E"
 	export CXXCPP="$CXX -E"
+	export PATH="$(xcodebuild 2>/dev/null -version -sdk $SDK PlatformPath)/Developer/usr/bin::/Developer/usr/bin:$ORIG_PATH"
+}
+
+set_armv7() {
+	set_sdk "iphoneos"
+	export CFLAGS="$CFLAGS -arch armv7 -mthumb -mcpu=cortex-a8 -mfloat-abi=softfp -mfpu=neon -ftree-vectorize -D_LITTLE_ENDIAN"
+	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+	export CPPFLAGS="$CFLAGS"
 	export HOST="arm-apple-darwin"
 }
 
 set_i386() {
-	export CC="${CCACHE}$(xcodebuild 2>/dev/null -sdk iphonesimulator -find gcc)"
-	export CXX="${CCACHE}$(xcodebuild 2>/dev/null -sdk iphonesimulator -find g++)"
-	export AR="$(xcodebuild 2>/dev/null -sdk iphonesimulator -find ar)"
-	export AS="$(xcodebuild 2>/dev/null -sdk iphonesimulator -find as)"
-	export NM="$(xcodebuild 2>/dev/null -sdk iphonesimulator -find nm)"
-	export RANLIB="$(xcodebuild 2>/dev/null -sdk iphonesimulator -find ranlib)"
-	export SDK_DIR="$(xcodebuild 2>/dev/null -version -sdk iphonesimulator Path)"
-	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -fstrict-aliasing -ffast-math \
--arch i386 -march=i686 -msse3 \
--isysroot $SDK_DIR -I$PREFIX/include"
+	set_sdk "iphonesimulator"
+	export CFLAGS="$CFLAGS -arch i386 -march=i686 -msse3"
 	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
 	export CPPFLAGS="$CFLAGS"
-	export CPP="$CC -E"
-	export CXXCPP="$CXX -E"
 	export HOST="i686-apple-darwin"
 }
 
