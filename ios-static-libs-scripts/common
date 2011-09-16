@@ -135,7 +135,7 @@ sig_handler() {
 	while [ -d "$MY_TMP" ]
 	do
 		# This might fail if a background job is creating files
-		rm -rf $MY_TMP 2>/dev/null || true
+		rm -rf $MY_TMP >/dev/null 2>&1 || true
 	done
 
 	# Ctrl-C == DIE DIE DIE
@@ -166,7 +166,7 @@ elif which gnumake >/dev/null 2>&1
 then
 	MAKE=gnumake
 fi
-MAKE="$MAKE -j4"
+MAKE="$MAKE -j4 -S"
 
 CCACHE=""
 if which ccache >/dev/null 2>&1
