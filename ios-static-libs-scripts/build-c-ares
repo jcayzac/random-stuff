@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+LIB="c-ares"
+VERSION="1.7.5"
+. "$(dirname $0)/common"
+
+MD5="800875fc23cd8e1924d8af9172ed33e7"
+
+echo "Downloading tarball"
+http_fetch c-ares-${VERSION}.tar.gz $MD5 \
+"http://c-ares.haxx.se/download/c-ares-${VERSION}.tar.gz"
+
+show_progress 213 unpacking.log "Unpacking" \
+<<< "tar xvz --strip-components 1 -f c-ares-${VERSION}.tar.gz 2>&1"
+
+for arch in armv7 i386
+do
+	echo "Building $LIB for $arch"
+	BUILD_DIR="$MY_TMP/build/$arch"
+	mkdir -p "$BUILD_DIR/prefix"
+	cd "$BUILD_DIR"
+	set_$arch
+	show_progress 397 conf.log "    Configure" \
+	<<< "$MY_TMP/configure \
+--host=$HOST \
+--prefix=$MY_TMP/build/$arch/prefix \
+--enable-static \
+--disable-shared \
+--disable-debug \
+--enable-optimize=-O3 \
+--disable-warnings \
+--disable-werror \
+--disable-curldebug \
+--enable-symbol-hiding \
+--disable-dependency-tracking \
+--enable-nonblocking \
+--with-random=/dev/urandom"
+	show_progress 121 build.log "	Build" \
+	<<< "$MAKE"
+	show_progress 55 install.log "	Install" \
+	<<< "$MAKE install"
+	$MAKE distclean >/dev/null 2>&1
+	echo
+done
+
+echo -n "Creating fat libraries: "
+lipo -create -output "$PREFIX/lib/libcares.a" \
+		 -arch armv7 "$MY_TMP/build/armv7/prefix/lib/libcares.a" \
+		 -arch i386  "$MY_TMP/build/i386/prefix/lib/libcares.a"
+echo OK
+
+ditto "$MY_TMP/build/armv7/prefix/include" "$PREFIX/include"

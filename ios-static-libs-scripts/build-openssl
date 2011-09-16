@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+LIB="openssl"
+VERSION="1.0.0e"
+. "$(dirname $0)/common"
+
+MD5="7040b89c4c58c7a1016c0dfa6e821c86"
+
+echo "Downloading tarball"
+http_fetch openssl-${VERSION}.tar.gz $MD5 \
+"http://www.openssl.org/source/openssl-${VERSION}.tar.gz"
+
+show_progress 2345 unpacking.log "Unpacking" \
+<<< "tar xvz --strip-components 1 -f openssl-${VERSION}.tar.gz 2>&1"
+
+sed -i '' -e 's#^);$#\
+"ios","$ENV{CC}:-DTERMIOS::${BSDthreads}:::BN_LLONG RC2_CHAR RC4_INDEX DES_INT:${no_asm}:",\
+);#' Configure
+
+for arch in armv7 i386
+do
+	echo "Building $LIB for $arch"
+	BUILD_DIR="$MY_TMP/build/$arch"
+	mkdir -p "$BUILD_DIR/prefix"
+	cd "$BUILD_DIR"
+	set_$arch
+	cd $MY_TMP
+	show_progress 205 conf.log "    Configure" \
+	<<< "./Configure \
+--openssldir=$MY_TMP/build/$arch/prefix \
+threads \
+zlib \
+no-shared \
+no-asm \
+no-sse2 \
+no-dso \
+no-hw \
+ios"
+
+	cd engines
+	show_progress 80 engines.log "    Building engines" \
+	<<< "$MAKE"
+
+	cd ../crypto
+	show_progress 2062 crypto.log "    Building libcrypto" \
+	<<< "$MAKE"
+
+	cd ../ssl
+	show_progress 59 ssl.log "    Building libssl" \
+	<<< "$MAKE"
+
+	cd ..
+	show_progress 281 install.log "    Install" \
+	<<< "$MAKE install_sw EXE='' SCRIPTS='' APPS='' MISC_APPS=''"
+
+	$MAKE clean >/dev/null 2>&1
+done
+
+echo -n "Creating fat libraries: "
+for SLIB in crypto ssl
+do
+	lipo -create -output "$PREFIX/lib/lib$SLIB.a" \
+			 -arch armv7 "$MY_TMP/build/armv7/prefix/lib/lib$SLIB.a" \
+			 -arch i386  "$MY_TMP/build/i386/prefix/lib/lib$SLIB.a"
+done
+echo OK
+
+ditto "$MY_TMP/build/armv7/prefix/include" "$PREFIX/include"
