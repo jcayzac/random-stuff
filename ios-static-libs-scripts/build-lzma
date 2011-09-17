@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+LIB="lzma"
+VERSION="920"
+. "$(dirname $0)/common"
+
+MD5="f16a8a3b3bc82941f8bbad88ddb8f9c8"
+
+echo "Downloading tarball"
+http_fetch lzma${VERSION}.tar.bz2 $MD5 \
+"sourceforge:sevenzip/LZMA%20SDK/lzma${VERSION}.tar.bz2"
+
+show_progress 454 unpacking.log "Unpacking" \
+<<< "tar xvz -f lzma${VERSION}.tar.bz2 2>&1"
+
+sed -i '' -e 's/#define USE_ASM//g' C/CpuArch.c
+cat >Makefile <<EOT
+OBJS = 7zAlloc.o 7zBuf.o 7zBuf2.o 7zCrc.o 7zCrcOpt.o 7zDec.o 7zFile.o 7zIn.o 7zStream.o Alloc.o Bcj2.o Bra.o Bra86.o BraIA64.o CpuArch.o Delta.o LzFind.o Lzma2Dec.o Lzma2Enc.o Lzma86Dec.o Lzma86Enc.o LzmaDec.o LzmaEnc.o LzmaLib.o Ppmd7.o Ppmd7Dec.o Ppmd7Enc.o Sha256.o Xz.o XzCrc64.o XzDec.o XzEnc.o XzIn.o
+
+LIB = liblzma-st.a
+SRC ?= .
+
+%.o: \$(SRC)/%.c
+	\$(CC) -c -o \$@ \$< -D_7ZIP_ST \$(CFLAGS)
+
+all: \$(LIB)
+
+# -ftree-vectorize cause a build error:
+# XzIn.c: In function ‘Xzs_GetNumBlocks’:
+# XzIn.c:246: internal compiler error: Bus error
+XzIn.o: \$(SRC)/XzIn.c
+	\$(CC) -c -o \$@ \$< -D_7ZIP_ST \$(filter-out -ftree-vectorize,\$(CFLAGS))
+
+\$(LIB): \$(OBJS)
+	\$(AR) crus \$@ \$<
+
+.PHONY: clean
+
+clean:
+	rm \$(LIB) \$(OBJS)
+EOT
+
+for arch in armv7 i386
+do
+	BUILD_DIR="$MY_TMP/build/$arch"
+	mkdir -p "$BUILD_DIR"
+	cd "$BUILD_DIR"
+	set_$arch
+	show_progress 34 build.log "Building $LIB for $arch" \
+	<<< "$MAKE -f $MY_TMP/Makefile SRC=$MY_TMP/C"
+done
+
+echo -n "Creating fat libraries: "
+lipo -create -output "$PREFIX/lib/liblzma-st.a" \
+		 -arch armv7 "$MY_TMP/build/armv7/liblzma-st.a" \
+		 -arch i386  "$MY_TMP/build/i386/liblzma-st.a"
+echo OK
+
+mkdir -p "$PREFIX/include/lzma"
+cp "$MY_TMP/C"/*.h "$PREFIX/include/lzma"/
