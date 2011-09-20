@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+LIB="curl"
+VERSION="7.22.0"
+DEPEND="\
+c-ares:1.7.5 \
+openssl:1.0.0e \
+z:1.2.5 \
+"
+. "$(dirname $0)/common"
+
+ARCHIVE="$LIB-${VERSION}.tar.gz"
+MD5="2573d72ce2004920cea06a14df955222"
+
+echo "Downloading tarball"
+http_fetch $ARCHIVE $MD5 \
+"https://github.com/bagder/curl/tarball/curl-7_22_0"
+
+show_progress 1428 unpacking.log "Unpacking" \
+<<< "tar xvz --strip-components 1 -f $ARCHIVE 2>&1"
+
+show_progress 16 reconf.log "Generating configure script" \
+<<< "sh ./buildconf"
+
+export LIBS='-lz'
+
+for arch in armv7 i386
+do
+	echo "Building $LIB for $arch"
+	BUILD_DIR="$MY_TMP/build/$arch"
+	mkdir -p "$BUILD_DIR/prefix"
+	cd "$BUILD_DIR"
+	set_$arch
+
+	show_progress 731 conf.log "    Configure" \
+	<<< "$MY_TMP/configure \
+--host=$HOST \
+--prefix=$MY_TMP/build/$arch/prefix \
+--enable-static \
+--disable-shared \
+--disable-curldebug \
+--disable-debug \
+--disable-dependency-tracking \
+--disable-warnings \
+--disable-werror \
+--enable-ares \
+--enable-cookies \
+--enable-crypto-auth \
+--enable-file \
+--enable-ftp \
+--enable-hidden-symbols \
+--enable-http \
+--enable-ipv6 \
+--enable-nonblocking \
+--enable-proxy \
+--with-random=/dev/urandom \
+--with-ssl=$PREFIX \
+--with-sysroot=$SDK_DIR \
+--with-zlib=$PREFIX \
+--without-ca-bundle \
+--without-ca-path"
+
+	show_progress 256 build.log "	Build" \
+	<<< "$MAKE"
+
+	show_progress 95 install.log "	Install" \
+	<<< "$MAKE install"
+done
+
+echo -n "Creating fat libraries: "
+lipo -create -output "$PREFIX/lib/libcurl.a" \
+		 -arch armv7 "$MY_TMP/build/armv7/prefix/lib/libcurl.a" \
+		 -arch i386  "$MY_TMP/build/i386/prefix/lib/libcurl.a"
+echo OK
+
+ditto "$MY_TMP/build/armv7/prefix/include" "$PREFIX/include"
