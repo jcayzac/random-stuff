@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 LIB="openssl"
 VERSION="1.0.0e"
+DEPEND="\
+z:1.2.5 \
+"
 . "$(dirname $0)/common"
 
 MD5="7040b89c4c58c7a1016c0dfa6e821c86"

@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+LIB="z"
+VERSION="1.2.5"
+. "$(dirname $0)/common"
+
+MD5="c735eab2d659a96e5a594c9e8541ad63"
+
+msg "Downloading tarball"
+http_fetch zlib-${VERSION}.tar.gz $MD5 \
+"sourceforge:libpng/zlib/${VERSION}/zlib-${VERSION}.tar.gz"
+
+show_progress 265 unpacking.log "Unpacking" \
+<<< "tar xvz --strip-components 1 -f zlib-${VERSION}.tar.gz 2>&1"
+
+for arch in armv7 i386
+do
+	echo "Building for $arch"
+	set_$arch
+	mkdir -p build/$arch
+	show_progress 8 build/$arch/conf.log "    Configuring" \
+	<<< "./configure --static"
+	show_progress 16 build/$arch/build.log "    Building" \
+	<<< "$MAKE libz.a"
+	mv libz.a build/$arch/
+	make distclean >/dev/null 2>&1
+done
+
+msg "Installing"
+lipo -create -output "$PREFIX/lib/libz.a" \
+		 -arch armv7 "build/armv7/libz.a" \
+		 -arch i386  "build/i386/libz.a"
+
+cp zlib.h zconf.h "$PREFIX/include/"
+
