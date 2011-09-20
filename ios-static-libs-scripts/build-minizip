@@ -2,6 +2,7 @@
 LIB="minizip"
 VERSION="1.2.5"
 DEPEND="\
+z:1.2.5 \
 bzip2:1.0.6 \
 "
 . "$(dirname $0)/common"
