@@ -56,4 +56,9 @@ lipo -create -output "$PREFIX/lib/liblzma-st.a" \
 echo OK
 
 mkdir -p "$PREFIX/include/lzma"
-cp "$MY_TMP/C"/*.h "$PREFIX/include/lzma"/
+ls -1 $MY_TMP/C/*.h | while read FN
+do
+	B=${FN##*/}
+	sed 's/"\([^"]*.h\)"/<lzma\/\1>/g' <"$FN" >"$PREFIX/include/lzma/$B"
+done
+
