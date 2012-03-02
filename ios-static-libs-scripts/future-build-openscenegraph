@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+LIB="openscenegraph"
+VERSION="3.0.1"
+. "$(dirname $0)/common"
+
+MD5="c43a25d023e635c3566b2083d8e6d956"
+
+for dep in unzip cmake
+do
+	if ! which $dep >/dev/null 2>/dev/null
+	then
+		msg "Failed dependency: $dep"
+		echo "Could not find $dep, which is needed to build $LIB. Please install it and try again. With MacPorts:"
+		echo
+		echo "	sudo port selfupdate"
+		echo "	sudo port install $dep"
+		echo
+		echo "...and ensure $dep is in your PATH"
+		echo "Exiting..."
+		exit 1
+	fi
+done
+
+echo "Downloading ZIP archive"
+
+http_fetch OpenSceneGraph-${VERSION}.zip $MD5 \
+http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-${VERSION}/source/OpenSceneGraph-${VERSION}.zip
+
+show_progress 3407 unpacking.log "Unpacking" \
+<<< "unzip OpenSceneGraph-${VERSION}.zip"
+cd OpenSceneGraph-${VERSION}
+ROOT_DIR="$(pwd)"
+
+export MACOSX_DEPLOYMENT_TARGET= IPHONEOS_DEPLOYMENT_TARGET=$IPHONE_SDKVERSION
+for arch in armv7 i386
+do
+	echo "Building $LIB for $arch"
+	mkdir -p "$ROOT_DIR/build/$arch/prefix"
+	cd "$ROOT_DIR/build/$arch"
+	set_$arch
+
+	cmake \
+-D BUILD_SHARED_LIBS:BOOL=OFF \
+-D OSG_LIBRARY_STATIC:BOOL=ON \
+-D CMAKE_INSTALL_PREFIX:STRING="$ROOT_DIR/build/$arch/prefix" \
+-D CMAKE_C_COMPILER:STRING="gcc" \
+-D CMAKE_CXX_COMPILER:STRING="g++" \
+-D CMAKE_C_FLAGS:STRING="$CFLAGS" \
+-D CMAKE_CXX_FLAGS:STRING="$CXXFLAGS" \
+-D CMAKE_PREFIX_PATH:STRING="$SDK_DIR:$PLATFORM_DIR" \
+-D CMAKE_SYSTEM_NAME:STRING="darwin" \
+-D CMAKE_SYSTEM_PROCESSOR:STRING="arm" \
+-D CMAKE_FIND_ROOT_PATH:STRING="$SDK_DIR:$PLATFORM_DIR" \
+-D CMAKE_FIND_ROOT_PATH_MODE_PROGRAM:STRING=NEVER \
+-D CMAKE_FIND_ROOT_PATH_MODE_LIBRARY:STRING=ONLY \
+-D CMAKE_FIND_ROOT_PATH_MODE_INCLUDE:STRING=ONLY \
+-D BUILD_OSG_APPLICATIONS:BOOL=OFF \
+-D OSG_BUILD_FRAMEWORKS:BOOL=OFF \
+-D OSG_WINDOWING_SYSTEM:STRING=IOS \
+-D OSG_BUILD_PLATFORM_IPHONE:BOOL=ON \
+-D OSG_GL1_AVAILABLE:BOOL=OFF \
+-D OSG_GL2_AVAILABLE:BOOL=OFF \
+-D OSG_GL3_AVAILABLE:BOOL=OFF \
+-D OSG_GLES1_AVAILABLE:BOOL=ON \
+-D OSG_GL_DISPLAYLISTS_AVAILABLE:BOOL=OFF \
+-D OSG_GL_FIXED_FUNCTION_AVAILABLE:BOOL=ON \
+-D OSG_GL_LIBRARY_STATIC:BOOL=OFF \
+-D OSG_GL_MATRICES_AVAILABLE:BOOL=ON \
+-D OSG_GL_VERTEX_ARRAY_FUNCS_AVAILABLE:BOOL=ON \
+-D OSG_GL_VERTEX_FUNCS_AVAILABLE:BOOL=OFF \
+-D DYNAMIC_OPENSCENEGRAPH:BOOL=OFF \
+-D DYNAMIC_OPENTHREADS:BOOL=OFF \
+-D OPENAL_INCLUDE_DIR:STRING="$SDK_DIR/System/Library/Frameworks/OpenAL.framework/Headers" \
+-D OPENAL_LIBRARY:STRING="$SDK_DIR/System/Library/Frameworks/OpenAL.framework" \
+-D _OPENTHREADS_ATOMIC_USE_BSD_ATOMIC_EXITCODE=1 \
+-D _OPENTHREADS_ATOMIC_USE_GCC_BUILTINS_EXITCODE=0 \
+../..
+	make
+done
+
+echo -n "Creating fat libraries: "
+lipo -create -output "$PREFIX/lib/libzbar.a" \
+		 -arch armv7 "$MY_TMP/build/armv7/prefix/lib/libzbar.a" \
+		 -arch i386  "$MY_TMP/build/i386/prefix/lib/libzbar.a"
+echo OK
+
+ditto "$MY_TMP/build/armv7/prefix/include" "$PREFIX/include"
+

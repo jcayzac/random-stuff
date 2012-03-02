@@ -1,108 +1,21 @@
-#!/usr/bin/env bash
-# Source this file in other scripts
+#!/usr/bin/env python
+import os
+import pipes
+import subprocess
+import sys
 
-if ! (( ${BASH_VERSINFO:-0} >= 4 ))
-then
-	echo "Build system needs Bash >= 4.0"
-	echo "Please install it with MacPorts first:"
-	echo
-	echo "	sudo port selfupdate"
-	echo "	sudo port install bash"
-	echo
-	echo "...then verify it's in your PATH!"
-	echo
-	echo "Exiting..."
-	exit 1
-fi
 
-: ${SOURCEFORGE_MIRRORS:=jaist cdnetworks-kr-1 cdnetworks-kr-2}
 
-# Color macros
-f() {
-	local esc='['
-	text_reset=${esc}0m
-	text_bold=${esc}1m
-	text_underscore=${esc}4m
-	text_blink=${esc}5m
-	text_reverse=${esc}7m
-	text_concealed=${esc}8m
-
-	local black=0
-	local red=1
-	local green=2
-	local yellow=3
-	local blue=4
-	local magenta=5
-	local cyan=6
-	local white=7
-
-	text_black=${esc}3${black}m
-	text_red=${esc}3${red}m
-	text_green=${esc}3${green}m
-	text_yellow=${esc}3${yellow}m
-	text_blue=${esc}3${blue}m
-	text_magenta=${esc}3${magenta}m
-	text_cyan=${esc}3${cyan}m
-	text_white=${esc}3${white}m
-
-	bg_black=${esc}4${black}m
-	bg_red=${esc}4${red}m
-	bg_green=${esc}4${green}m
-	bg_yellow=${esc}4${yellow}m
-	bg_blue=${esc}4${blue}m
-	bg_magenta=${esc}4${magenta}m
-	bg_cyan=${esc}4${cyan}m
-	bg_white=${esc}4${white}m
-}; f; unset f
-
-msg() {
-	echo "${text_bold}$@${text_reset}"
-}; readonly msg
-
-if [ "${0#*/}" == "common" ]
-then
-	msg "'common' is to be sourced in other scripts, not invoked directly. Exiting."
-	exit 1
-fi
-
-ORIG_PWD=$(pwd)
-ORIG_PATH="$PATH"
-readonly ORIG_PWD
-readonly ORIG_PATH
-
-if [ -z "$LIB" ]
-then
-	msg "Library is not named. Please declare LIB before sourcing 'common'."
-	exit 1
-fi
-readonly LIB
-
-if [ -z "$VERSION" ]
-then
-	msg "Library [$LIB] is not versioned. Please declare VERSION before sourcing 'common'."
-	exit 1
-fi
-readonly VERSION
-
-# Fail and exit on first error
-set -e
-
-SCRIPT="$0"
-if [ "${SCRIPT:0:1}" != "/" ]
-then
-	pushd $(dirname "$SCRIPT") >/dev/null
-	SCRIPT_DIR=$(pwd)
-	popd >/dev/null
-	SCRIPT="$SCRIPT_DIR/${SCRIPT#*/}"
-fi
-readonly SCRIPT
+SOURCEFORGE_MIRRORS = ['jaist', 'cdnetworks-kr-1', 'cdnetworks-kr-2']
+ORIG_PWD=os.getcwd()
+ORIG_PATH=os.environ['PATH']
+SCRIPT=__FILE__
 
 RAMDISK_NAME="temp-for-build"
-readonly RAMDISK_NAME
 if [ ! -d "/Volumes/$RAMDISK_NAME" ]
 then
-	# Use 2GB for build (should be enough for boost and icu)
-	diskutil erasevolume HFS+ "$RAMDISK_NAME" $(hdiutil attach -nomount ram://4000000)
+	# Use 1GB for build (should be enough for boost and icu)
+	diskutil erasevolume HFS+ "$RAMDISK_NAME" $(hdiutil attach -nomount ram://2330860)
 fi
 
 MY_TMP="/Volumes/$RAMDISK_NAME/build-$LIB.$VERSION"
@@ -132,11 +45,11 @@ sig_handler() {
 		esac
 	fi
 
-	#while [ -d "$MY_TMP" ]
-	#do
+	while [ -d "$MY_TMP" ]
+	do
 		# This might fail if a background job is creating files
-	#	rm -rf $MY_TMP >/dev/null 2>&1 || true
-	#done
+		rm -rf $MY_TMP >/dev/null 2>&1 || true
+	done
 
 	# Ctrl-C == DIE DIE DIE
 	kill -s ${SIG/INT/KILL} 0
@@ -186,17 +99,15 @@ IPHONE_SDKVERSION=$(xcodebuild 2>/dev/null -sdk iphoneos -version SDKVersion)
 
 set_ios_sdk() {
 	export SDK="$1"
-	export CC_BARE="$(xcodebuild 2>/dev/null -sdk $SDK -find gcc)"
-	export CC="${CCACHE}${CC_BARE}"
-	export CXX_BARE="$(xcodebuild 2>/dev/null -sdk $SDK -find g++)"
-	export CXX="${CCACHE}${CXX_BARE}"
+	export CC="${CCACHE}$(xcodebuild 2>/dev/null -sdk $SDK -find gcc)"
+	export CXX="${CCACHE}$(xcodebuild 2>/dev/null -sdk $SDK -find g++)"
 	export AR="$(xcodebuild 2>/dev/null -sdk $SDK -find ar)"
 	export AS="$(xcodebuild 2>/dev/null -sdk $SDK -find as)"
 	export NM="$(xcodebuild 2>/dev/null -sdk $SDK -find nm)"
 	export RANLIB="$(xcodebuild 2>/dev/null -sdk $SDK -find ranlib)"
 	export SYSROOT="$(xcodebuild 2>/dev/null -version -sdk $SDK Path)"
 	export PLATFORM_DIR="$(xcodebuild 2>/dev/null -version -sdk $SDK PlatformPath)"
-	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -fstrict-aliasing -ffast-math -isysroot $SYSROOT -isystem ${PREFIX}/include -DNDEBUG"
+	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -fstrict-aliasing -ffast-math -isysroot=$SYSROOT -DNDEBUG"
 	export CPP="$CC -E"
 	export CXXCPP="$CXX -E"
 	export PATH="$(xcodebuild 2>/dev/null -version -sdk $SDK PlatformPath)/Developer/usr/bin::/Developer/usr/bin:$ORIG_PATH"
@@ -225,11 +136,12 @@ set_android() {
 		msg "ndk-build not in PATH"
 		exit 1
 	fi
+	export HOST="arm-linux-androideabi"
 	local NDK_PATH="${NDK_BUILD%/*}"
-	local TOOLCHAIN_PATH=$(find -s "$NDK_PATH/toolchains" -depth 1 -iname "$TOOLCHAIN-*" | tail -n 1)
-	if [ ! -d "$TOOLCHAIN_PATH" ]
+	local TOOLCHAIN=$(find -s "$NDK_PATH/toolchains" -depth 1 -iname "$HOST-*" | tail -n 1)
+	if [ ! -d "$TOOLCHAIN" ]
 	then
-		msg "$TOOLCHAIN toolchain not found"
+		msg "$HOST toolchain not found"
 		exit 1
 	fi
 	local PLATFORM=$(find -s "$NDK_PATH/platforms" -depth 1 -iname "android-*" | tail -n 1)
@@ -264,46 +176,40 @@ set_android() {
 		;;
 	esac
 
-	local PREBUILT_BIN="${TOOLCHAIN_PATH}/prebuilt/${HOST_TAG}/bin"
+	local PREBUILT_BIN="${TOOLCHAIN}/prebuilt/${HOST_TAG}/bin"
 	export PATH=$PREBUILT_BIN:$PATH
-	export CC_BARE="${HOST}-gcc"
-	export CC="${CCACHE}${CC_BARE}"
-	export CXX_BARE="${HOST}-g++"
-	export CXX="${CCACHE}${CXX_BARE}"
+	export CC="${CCACHE}${HOST}-gcc"
+	export CXX="${CCACHE}${HOST}-g++"
 	export AR="${HOST}-ar"
 	export AS="${HOST}-as"
 	export NM="${HOST}-nm"
 	export RANLIB="${HOST}-ranlib"
 	export CPP="$CC -E"
 	export CXXCPP="$CXX -E"
-	export SYSROOT="$PLATFORM/arch-$ARCH"
-	export CFLAGS="$CFLAGS \
--mandroid \
--O3 \
--pipe \
--pthread \
--fvisibility=hidden \
--fstrict-aliasing \
--ffast-math \
---sysroot=$SYSROOT \
--isystem ${PREFIX}/include \
--DNDEBUG \
-"
-	export CXXFLAGS="$CFLAGS \
+	export SYSROOT="$PLATFORM/arch-arm"
+	export CFLAGS="-mandroid -O3 -pipe -pthread -fvisibility=hidden -fstrict-aliasing -ffast-math --sysroot=$SYSROOT -DNDEBUG"
+	export CFLAGS="$CFLAGS -mthumb -mfloat-abi=softfp -ftree-vectorize"
+	if [ "$NEON" == "1" ]
+	then
+		export CFLAGS="$CFLAGS -mcpu=cortex-a9 -mfpu=neon -mvectorize-with-neon-quad"
+	else
+		export CFLAGS="$CFLAGS -march=armv7-a -mfpu=vfpv3-d16"
+	fi
+	CXXFLAGS0="\
 -fvisibility-inlines-hidden \
 -fexceptions \
 -frtti \
--isystem $NDK_PATH/sources/cxx-stl/gnu-libstdc++/include \
--isystem $NDK_PATH/sources/cxx-stl/gnu-libstdc++/libs/armeabi-v7a/include \
+-I$NDK_PATH/sources/cxx-stl/gnu-libstdc++/include \
+-I$NDK_PATH/sources/cxx-stl/gnu-libstdc++/libs/armeabi-v7a/include \
 "
 	unset CPPFLAGS
 }
 
 set_android_neon() {
-	ARCH="arm"
 	TOOLCHAIN="arm-linux-androideabi"
-	HOST="arm-linux-androideabi"
-	CFLAGS="\
+	TRIPLET="arm-linux-androideabi"
+	set_android
+	export CFLAGS="$CFLAGS \
 -mcpu=cortex-a9 \
 -mfpu=neon \
 -mvectorize-with-neon-quad \
@@ -311,32 +217,32 @@ set_android_neon() {
 -mfloat-abi=softfp \
 -ftree-vectorize \
 "
-	set_android
+	export CXXFLAGS="$CFLAGS $CXXFLAGS0"
 }
 
 set_android_vfp3() {
-	ARCH="arm"
 	TOOLCHAIN="arm-linux-androideabi"
-	HOST="arm-linux-androideabi"
-	CFLAGS="\
+	TRIPLET="arm-linux-androideabi"
+	set_android
+	export CFLAGS="$CFLAGS \
 -march=armv7-a \
 -mfpu=vfpv3-d16 \
 -mthumb \
 -mfloat-abi=softfp \
 -ftree-vectorize \
 "
-	set_android
+	export CXXFLAGS="$CFLAGS $CXXFLAGS0"
 }
 
 set_android_x86() {
-	ARCH="arm"
 	TOOLCHAIN="x86"
-	HOST="i686-android-linux"
-	CFLAGS="\
+	TRIPLET="i686-android-linux"
+	set_android
+	export CFLAGS="\
 -march=i686 \
 -msse3 \
 "
-	set_android
+	export CXXFLAGS="$CFLAGS $CXXFLAGS0"
 }
 
 # Download a file
@@ -535,5 +441,5 @@ Temporary build directory: $MY_TMP
 ${text_reset}
 EOT
 
-# vim: set filetype=sh fileencodings=utf-8 tabstop=4 shiftwidth=4 noexpandtab :
+# vim: set filetype=python fileencodings=utf-8 tabstop=4 shiftwidth=4 noexpandtab :
 

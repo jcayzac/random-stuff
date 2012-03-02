@@ -13,14 +13,11 @@ BOOST_LIBS="\
 chrono \
 iostreams \
 random \
-serialization \
-exception \
 date_time \
 thread \
 signals \
 filesystem \
 regex \
-program_options \
 system \
 "
 
@@ -31,76 +28,77 @@ sourceforge:boost/boost/${VERSION}/boost_${VERSION//./_}.tar.bz2
 show_progress 39518 unpacking.log "Unpacking" \
 <<< "tar xvj --strip-components 1 -f boost_${VERSION//./_}.tar.bz2 2>&1"
 
-echo Writing usr-config
-set_armv7
-if [ ! -z "$CCACHE" ]
-then
-	CXX=${CXX/$CCACHE/}
-fi
-cat > tools/build/v2/user-config.jam <<EOF
-using darwin : ${IPHONE_SDKVERSION}~iphone
-   : $CXX $CXXFLAGS
-   : <striper>
-   : <architecture>arm <target-os>iphone
-   ;
-EOF
-set_i386
-if [ ! -z "$CCACHE" ]
-then
-	CXX=${CXX/$CCACHE/}
-fi
-cat >> tools/build/v2/user-config.jam <<EOF
-using darwin : ${IPHONE_SDKVERSION}~iphonesim
-   : $CXX $CXXFLAGS
-   : <striper>
-   : <architecture>x86 <target-os>iphone
-   ;
-EOF
+sed -i '' \
+-e 's#if \!defined(__APPLE__) \&\& \!defined(__OpenBSD__)#if \!defined(__APPLE__) \&\& \!defined(__OpenBSD__) \&\& \!defined(__ANDROID__)#' \
+libs/filesystem/v2/src/v2_operations.cpp
 
-# Remove bogus forced armv6 from darwin.jam
-sed -i -e 's/options = -arch armv6.*$//g' tools/build/v2/tools/darwin.jam
+less libs/filesystem/v2/src/v2_operations.cpp
+
+# <linkflags> and <linker-type> are required for the has_icu test
+# to pass
+cat >tools/build/v2/user-config.jam <<EOF
+import os ;
+local CXX = [ os.environ CXX_BARE ] ;
+local CXXFLAGS = [ os.environ CXXFLAGS ] ;
+local AR = [ os.environ AR ] ;
+local RANLIB = [ os.environ RANLIB ] ;
+
+using gcc : smart : \$(CXX) : \
+<cxxflags>\$(CXXFLAGS) \
+<linkflags>\$(CXXFLAGS) \
+<linker-type>osf \
+<archiver>\$(AR) \
+<ranlib>\$(RANLIB) \
+;
+EOF
 
 # FIXME: this should not be required
 cp -v "${SIM_SDK}/usr/include/crt_externs.h" ./
 
 BOOST_LIBS_COMMA=${BOOST_LIBS// /,}
 echo "Bootstrapping (with libs $BOOST_LIBS_COMMA)"
-./bootstrap.sh --with-libraries=$BOOST_LIBS_COMMA --with-icu=$PREFIX
-
-COMMON_OPTIONS="toolset=darwin target-os=iphone link=static runtime-link=static"
-
-mkdir -p prefix
-ARM_PREFIX="$(pwd)/prefix/arm"
-X86_PREFIX="$(pwd)/prefix/x86"
-
-show_progress 9690 arm.log "Building for device" \
-<<< "./b2 -q -j 4 \
---prefix=$ARM_PREFIX \
-$COMMON_OPTIONS \
-architecture=arm \
-macosx-version=iphone-${IPHONE_SDKVERSION} \
-install"
-
-show_progress 9660 x86.log "Building for simulator" \
-<<< "./b2 -q -j 4 \
---prefix=$X86_PREFIX \
-$COMMON_OPTIONS \
-architecture=x86 \
-macosx-version=iphonesim-${IPHONE_SDKVERSION} \
-install"
+./bootstrap.sh --with-toolset=gcc --with-libraries=$BOOST_LIBS_COMMA
+for arch in android_vfp3 android_neon android_x86 armv7 i386
+do
+	# set_android_neon
+	#./b2 -d+2 -q -j 4 toolset=gcc-smart target-os=linux link=static runtime-link=static threading=multi define=__GLIBC__
+	mkdir -p "build_$arch" "prefix_$arch"
+	set_$arch
+	if [ ${arch/android/} != $arch ]
+	then
+		os=linux
+		#CXXFLAGS="$CXXFLAGS -D__GLIBC__"
+	else
+		os=bsd
+	fi
+	export CXXFLAGS="$CXXFLAGS \
+-DBOOST_NO_INTRINSIC_WCHAR_T \
+-DBOOST_FILESYSTEM_VERSION=2 \
+-DBOOST_NO_STD_LOCALE \
+-DBOOST_HAS_ICU \
+-DU_STATIC_IMPLEMENTATION \
+"
+	./b2 -a -q -j 4 \
+	--build-dir="$MY_TMP/build_$arch" \
+	--prefix="$MY_TMP/prefix_$arch" \
+	-sICU_PATH="$PREFIX" \
+	-sICU_LINK="-L$SYSROOT/usr/lib -L$PREFIX/lib -licudata -licui18n -licuuc" \
+	toolset=gcc-smart target-os=$os link=static runtime-link=static threading=multi \
+	install
+	unset os extra
+	rm -rf "$MY_TMP/build_$arch"
+done
 
 echo -n "Creating fat library: "
-LIBS=$(cd "$ARM_PREFIX/lib" && ls -1 *.a | tr '\n' ' ')
+LIBS=$(cd "$MY_TMP/prefix_armv7/lib" && ls -1 *.a | tr '\n' ' ')
 for SLIB in $LIBS
 do
 	lipo -create -output "$PREFIX/lib/$SLIB" \
-		-arch armv7 "$ARM_PREFIX/lib/$SLIB" \
-		-arch i386  "$X86_PREFIX/lib/$SLIB"
+		-arch armv7 "prefix_armv7/lib/$SLIB" \
+		-arch i386  "prefix_i386/lib/$SLIB"
 done
 echo OK
 
 show_progress 17135 copy_headers.log "Copying headers" \
-<<< "ditto $ARM_PREFIX/include $PREFIX/include -V 2>&1"
-
-rm -rf "$ARM_PREFIX" "$X86_PREFIX"
+<<< "ditto prefix_armv7/include $PREFIX/include -V 2>&1"
 

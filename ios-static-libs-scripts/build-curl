@@ -54,7 +54,7 @@ do
 --enable-proxy \
 --with-random=/dev/urandom \
 --with-ssl=$PREFIX \
---with-sysroot=$SDK_DIR \
+--with-sysroot=$SYSROOT \
 --with-zlib=$PREFIX \
 --without-ca-bundle \
 --without-ca-path"

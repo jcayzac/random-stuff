@@ -31,4 +31,3 @@ lipo -create -output "$PREFIX/lib/libz.a" \
 		 -arch i386  "build/i386/libz.a"
 
 cp zlib.h zconf.h "$PREFIX/include/"
-
