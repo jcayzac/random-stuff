@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# Place it in your path, then $ git pr <pull request URL>
+ARG="$1"
+
+set -e
+set -u
+
+if ! git rev-parse HEAD >/dev/null 2>&1
+then
+	echo >&2 "*** Not in a git repository"
+	exit 1
+fi
+
+if [ "$ARG" == "nuke" ]
+then
+	CURRENT_BRANCH="$(git symbolic-ref HEAD || true)"
+	[ "${CURRENT_BRANCH:0:22}" == "refs/heads/reviews/pr-" ] && git checkout master
+	git branch -D $(git for-each-ref --format='%(refname:short)' "refs/heads/reviews/pr-*")
+	exit
+fi
+
+if [ -z "$ARG" ]
+then
+	echo >&2 "Usage: git pr <pull request URL> # Fetch a pull request"
+	echo >&2 "       git pr nuke               # Delete local branches of previous fetches"
+	exit
+fi
+
+PR_URL="${ARG%%/}"
+PR_HOST="${PR_URL#http://*}"
+PR_HOST="${PR_HOST#https://*}"
+PR_USER="${PR_HOST#*/}"
+PR_HOST="${PR_HOST%%/*}"
+PR_REPO="${PR_USER#*/}"
+PR_USER="${PR_USER%%/*}"
+PR_PULL="${PR_REPO#*/}"
+PR_REPO="${PR_REPO%%/*}"
+
+if [ "pull/" != "${PR_PULL:0:5}" ]
+then
+	echo >&2 "*** Not a pull request URL: $PR_URL"
+	exit 1
+fi
+
+PR_PULL="${PR_PULL:5}"
+if ! [ -z "${PR_PULL//[0-9]/}" ]
+then
+	echo >&2 "*** Not a valid pull request number: $PR_PULL"
+	exit 2
+fi
+
+PR_REMOTE="${PR_HOST}:${PR_USER}/${PR_REPO}.git"
+
+PR_LOCAL_BRANCH="reviews/pr-$PR_PULL"
+PR_LOCAL_BRANCH_NUM=0
+while git show-ref $PR_LOCAL_BRANCH >/dev/null 2>&1
+do
+	PR_LOCAL_BRANCH="reviews/pr-$PR_PULL-$((++PR_LOCAL_BRANCH_NUM))"
+done
+
+if ! git fetch -q "$PR_REMOTE" refs/pull/${PR_PULL}/head:$PR_LOCAL_BRANCH >/dev/null 2>&1
+then
+	git fetch "$PR_REMOTE" refs/pull/${PR_PULL}/merge:$PR_LOCAL_BRANCH
+	echo "!!! $PR_URL cannot be automatically merged !!!"
+fi
+git checkout $PR_LOCAL_BRANCH
+

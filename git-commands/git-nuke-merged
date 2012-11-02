@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+git fetch --all
+for BRANCH in $(git branch --merged upstream/master | grep -vE "[ *]+(master|develop|\(no branch\)|$(git rev-parse --abbrev-ref HEAD))\$")
+do
+	git branch -d $BRANCH
+	git push origin :$BRANCH || true
+done
+
