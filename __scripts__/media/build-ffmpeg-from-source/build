@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -e
+which glibtoolize >/dev/null 2>&1 || sudo port install libtool
+which cmake       >/dev/null 2>&1 || sudo port install cmake
+
+PREFIX="${HOME}/ffmpeg-prefix"
+[ -d "$PREFIX" ] && rm -rf "$PREFIX"
+mkdir -p "$PREFIX"
+
+export PATH="${PREFIX}/bin:$PATH"
+export C_INCLUDE_PATH="${PREFIX}/include:/System/Library/Frameworks/OpenGL.framework/Headers"
+export LIBRARY_PATH="${PREFIX}/lib:/System/Library/Frameworks/OpenGL.framework/Libraries"
+export CPLUS_INCLUDE_PATH="$C_INCLUDE_PATH"
+export LD_LIBRARY_PATH="$LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$LIBRARY_PATH"
+
+cd "$(dirname "$0")"
+
+rm -rf .work >/dev/null 2>&1 || true
+mkdir .work
+cd .work
+
+for DEP in ../dependencies/*.sh
+do
+	echo $DEP
+	. "$DEP"
+done
+
+cd ..
+rm -rf .work
+echo DONE
+

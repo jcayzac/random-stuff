@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+PROG=qt-faststart
+. "$(cd "$(dirname "$0")"; pwd)/wrapper_base"

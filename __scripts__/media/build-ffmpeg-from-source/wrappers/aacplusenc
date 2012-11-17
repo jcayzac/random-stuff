@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+PROG=aacplusenc
+. "$(cd "$(dirname "$0")"; pwd)/wrapper_base"

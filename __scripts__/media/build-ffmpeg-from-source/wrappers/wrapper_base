@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+PREFIX="${HOME}/ffmpeg-prefix"
+[ -x "${PREFIX}/bin/$PROG" ] || exit 1
+
+export PATH="${PREFIX}/bin:$PATH"
+export DYLD_LIBRARY_PATH="${PREFIX}/lib"
+
+declare -a ARGS
+COUNT=$#
+for ((INDEX=0; INDEX<COUNT; ++INDEX))
+do
+	ARG="$(printf "%q" "$1")"
+	ARGS+=("$(printf "%q" "$ARG")")
+	shift
+done
+
+$PROG ${ARGS[*]}
+
