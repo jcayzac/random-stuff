@@ -43,7 +43,7 @@ then
 fi
 
 PR_PULL="${PR_PULL:5}"
-if ! [ -z "${PR_PULL//[0-9]/}" ]
+if [ ! -z "$(tr -d '[:digit:]' <<<"$PR_PULL")" ]
 then
 	echo >&2 "*** Not a valid pull request number: $PR_PULL"
 	exit 2
