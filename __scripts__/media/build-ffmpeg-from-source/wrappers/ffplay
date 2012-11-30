@@ -1,3 +1,1 @@
-#!/usr/bin/env bash
-PROG=ffplay
-. "$(cd "$(dirname "$0")"; pwd)/wrapper_base"
+wrapper_base

@@ -1,19 +1,15 @@
 #!/usr/bin/env bash
 set -e
 PREFIX="${HOME}/ffmpeg-prefix"
-[ -x "${PREFIX}/bin/$PROG" ] || exit 1
-
 export PATH="${PREFIX}/bin:$PATH"
 export DYLD_LIBRARY_PATH="${PREFIX}/lib"
 
-declare -a ARGS
-COUNT=$#
-for ((INDEX=0; INDEX<COUNT; ++INDEX))
+CMD=("$(printf "%q" "${0##*/}")")
+while (($#))
 do
-	ARG="$(printf "%q" "$1")"
-	ARGS+=("$(printf "%q" "$ARG")")
+	CMD+=("$(printf "%q" "$1")")
 	shift
 done
 
-$PROG ${ARGS[*]}
+/usr/bin/env bash -c "nice -n 19 ${CMD[*]}"
 

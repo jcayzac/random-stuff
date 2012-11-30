@@ -1,4 +1,1 @@
-#!/usr/bin/env bash
-PROG=ffmpeg
-. "$(cd "$(dirname "$0")"; pwd)/wrapper_base"
-
+wrapper_base

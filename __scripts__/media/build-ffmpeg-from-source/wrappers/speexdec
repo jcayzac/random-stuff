@@ -1,3 +1,1 @@
-#!/usr/bin/env bash
-PROG=speexdec
-. "$(cd "$(dirname "$0")"; pwd)/wrapper_base"
+wrapper_base
