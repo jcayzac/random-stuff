@@ -1,9 +1,53 @@
 #!/usr/bin/env bash
+set -e
+set -f
+MERGE_BRANCH=${1-master}
+echo "Nuking branches already merged into $MERGE_BRANCH"
 
-git fetch --all
-for BRANCH in $(git branch --merged upstream/master | grep -vE "[ *]+(master|develop|\(no branch\)|$(git rev-parse --abbrev-ref HEAD))\$")
+echo "Fetching all from repository"
+git fetch --all -q
+
+echo
+echo "Local branches to be deleted:"
+BRANCHES=()
+while read BRANCH
 do
-	git branch -d $BRANCH
-	git push origin :$BRANCH || true
+	BRANCH=${BRANCH##\* }
+	[ "$BRANCH" == "master" ] && continue
+	[ "$BRANCH" == "develop" ] && continue
+	[ "$BRANCH" == "(no branch)" ] && continue
+	[ "$BRANCH" == "$MERGE_BRANCH" ] && continue
+	[ "$BRANCH" == "$(git rev-parse --abbrev-ref HEAD)" ] && continue
+	echo $BRANCH
+	BRANCHES+=("$BRANCH")
+done < <(git branch --merged "$MERGE_BRANCH")
+BRANCH_COUNT=${#BRANCHES[*]}
+
+echo
+echo "Remote branches to be deleted:"
+REMOTES=()
+REMOTE_REFS=()
+for ((I=0; I<BRANCH_COUNT; ++I))
+do
+	BRANCH=${BRANCHES[I]}
+	REMOTE="$(git config --get "branch.${BRANCH}.remote" || true)"
+	REMOTE_REF="$(git config --get "branch.${BRANCH}.merge" || true)"
+	if [ ! -z "$REMOTE" ] && [ ! -z "$REMOTE_REF" ]
+	then
+		REMOTES+=("$REMOTE")
+		REMOTE_REFS+=("$REMOTE_REF")
+		echo "$REMOTE +$REMOTE_REF"
+	fi
+done
+REMOTE_BRANCH_COUNT=${#REMOTES[*]}
+
+read -p "Press Ctrl+C to abort, or Enter if it's ok: "
+for ((I=0; I<BRANCH_COUNT; ++I))
+do
+	git branch -d ${BRANCHES[I]} || true
+done
+for ((I=0; I<REMOTE_BRANCH_COUNT; ++I))
+do
+	git push ${REMOTES[I]} :${REMOTE_REFS[I]} || true
 done
 
