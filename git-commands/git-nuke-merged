@@ -22,6 +22,7 @@ do
 	BRANCHES+=("$BRANCH")
 done < <(git branch --merged "$MERGE_BRANCH")
 BRANCH_COUNT=${#BRANCHES[*]}
+((BRANCH_COUNT)) || echo '(none)'
 
 echo
 echo "Remote branches to be deleted:"
@@ -40,8 +41,10 @@ do
 	fi
 done
 REMOTE_BRANCH_COUNT=${#REMOTES[*]}
+((REMOTE_BRANCH_COUNT)) || echo '(none)'
 
-read -p "Press Ctrl+C to abort, or Enter if it's ok: "
+((BRANCH_COUNT+REMOTE_BRANCH_COUNT)) && read -p "Press Ctrl+C to abort, or Enter if it's ok: "
+
 for ((I=0; I<BRANCH_COUNT; ++I))
 do
 	git branch -d ${BRANCHES[I]} || true
