@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -e
+
+MERGE_BRANCH="$1"
+SOURCE_BRANCH="$2"
+
+if [ -z "$MERGE_BRANCH" ] || \
+   [ -z "$SOURCE_BRANCH" ] || \
+   [ "$MERGE_BRANCH" == "-h" ] || \
+   [ "$MERGE_BRANCH" == "--help" ] || \
+   [ "$MERGE_BRANCH" == "help" ]
+then
+	cat <<EOT
+Usage:
+       git list-notmerged help                           Show this text
+       git list-notmerged <merge branch> <source branch> List all the commits of <source branch> that are not merged into <merge branch> yet, in reverse chronological order
+EOT
+	exit 1
+fi
+
+grep -v '^commit' < <(git rev-list --cherry --pretty=format:'%C(white red bold) %h %Creset %C(cyan)%cn%Creset %s %Cgreen(%cr)%Creset%C(yellow)%d%Creset' ${MERGE_BRANCH}..${SOURCE_BRANCH})
+

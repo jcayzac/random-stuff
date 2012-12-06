@@ -35,3 +35,11 @@ Note it doesn't try to delete certain branches:
 
 Also, it will try to delete branches on any remote (but will fail silently on those you don't have enough privileges).
 
+## git list-notmerged
+List the commit from the source branch still not merged into the merge branch.
+
+```sh
+napoleon.bonaparte ~/repos/myproject [master =] git list-unmerged origin/master origin/some/feature
+```
+
+Note it skips "equivalent" commits (commits already merged, but with a different SHA).
