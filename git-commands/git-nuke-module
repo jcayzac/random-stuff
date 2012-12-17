@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -e
+
+if [ -z "$1" ]
+then
+	echo >&2 "Usage: git nuke-module rm <name>"
+	exit 1
+fi
+
+M_PATH="$(git config -f .gitmodules --get "submodule.$1.path")"
+echo "Deleting submodule $1 with path = $M_PATH "
+git config -f .gitmodules --remove-section "submodule.$1"
+git config --remove-section "submodule.$1"
+[ -d "$M_PATH" ] && git rm --cached "$M_PATH"
+
