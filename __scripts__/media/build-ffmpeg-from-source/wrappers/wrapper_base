@@ -4,12 +4,14 @@ PREFIX="${HOME}/ffmpeg-prefix"
 export PATH="${PREFIX}/bin:$PATH"
 export DYLD_LIBRARY_PATH="${PREFIX}/lib"
 
-CMD=("$(printf "%q" "${0##*/}")")
-while (($#))
-do
-	CMD+=("$(printf "%q" "$1")")
-	shift
-done
+#CMD=("$(printf "%q" "${0##*/}")")
+#while (($#))
+#do
+#	CMD+=("$(printf "%q" "$1")")
+#	shift
+#done
+#
+#/usr/bin/env bash -c "nice -n 19 ${CMD[*]}"
 
-/usr/bin/env bash -c "nice -n 19 ${CMD[*]}"
+nice -n 19 "${0##*/}" ${1+"$@"}
 
