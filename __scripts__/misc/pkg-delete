@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -e
+set -u
+set -o pipefail
+
+if ((UID)); then sudo "$0" ${1+"$@"}; exit $?; fi
+PKG_ID="$1"
+echo "Deleting $PKG_ID"
+
+VOLUME="$(\tr -d '\n' < <(\sed -En 's/^volume: (.+)$/\1/p' < <(pkgutil --pkg-info "$PKG_ID" 2>/dev/null || true)))"
+[ -z "$VOLUME" ] && exit 1
+
+LOCATION="$(\tr -d '\n' < <(\sed -En 's/^location: (.+)$/\1/p' < <(pkgutil --pkg-info "$PKG_ID" 2>/dev/null || true)))"
+[ -z "$LOCATION" ] && exit 2
+
+if [ "${VOLUME: -1}" != "/" ] && [ "${LOCATION:0:1}" != "/" ]
+then
+	VOLUME="${VOLUME}/"
+fi
+
+INSTALL_DIR="$VOLUME$LOCATION"
+echo "Location: $INSTALL_DIR"
+
+if [ -d "$INSTALL_DIR" ]
+then
+	echo
+
+	cd "$INSTALL_DIR"
+	while IFS= read -r -d '' FN
+	do
+		[ -a "$FN" ] && echo rm -vfr "$FN"
+	done < <(pkgutil --files "$PKG_ID" | tr '\n' '\0')
+	echo find "$INSTALL_DIR" -name '.DS_Store' -print -delete
+	echo find "$INSTALL_DIR" -mindepth -d -empty -print -delete
+	rm -r "$INSTALL_DIR" || true
+	echo
+else
+	echo "(nothing to delete)"
+fi
+
+pkgutil --forget "$PKG_ID"
+echo "Done."
+
