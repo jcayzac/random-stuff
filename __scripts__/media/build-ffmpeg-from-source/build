@@ -13,6 +13,7 @@ export LIBRARY_PATH="${PREFIX}/lib:/System/Library/Frameworks/OpenGL.framework/L
 export CPLUS_INCLUDE_PATH="$C_INCLUDE_PATH"
 export LD_LIBRARY_PATH="$LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="$LIBRARY_PATH"
+export FREIOR_PATH="${PREFIX}/lib/frei0r-1"
 
 cd "$(dirname "$0")"
 

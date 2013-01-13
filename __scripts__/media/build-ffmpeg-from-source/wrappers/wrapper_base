@@ -3,6 +3,7 @@ set -e
 PREFIX="${HOME}/ffmpeg-prefix"
 export PATH="${PREFIX}/bin:$PATH"
 export DYLD_LIBRARY_PATH="${PREFIX}/lib"
+export FREI0R_PATH="${PREFIX}/lib/frei0r-1"
 
 #CMD=("$(printf "%q" "${0##*/}")")
 #while (($#))
