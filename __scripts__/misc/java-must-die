@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+cd "$(dirname "${BASH_SOURCE[0]}")"
+./pkg-delete com.apple.pkg.JavaForMacOSX107
+./pkg-delete com.oracle.jre
+
