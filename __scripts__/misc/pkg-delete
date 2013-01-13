@@ -31,7 +31,7 @@ then
 		[ -a "$FN" ] && echo rm -vfr "$FN"
 	done < <(pkgutil --files "$PKG_ID" | tr '\n' '\0')
 	echo find "$INSTALL_DIR" -name '.DS_Store' -print -delete
-	echo find "$INSTALL_DIR" -mindepth -d -empty -print -delete
+	echo find "$INSTALL_DIR" -mindepth 1 -d -empty -print -delete
 	rm -r "$INSTALL_DIR" || true
 	echo
 else
