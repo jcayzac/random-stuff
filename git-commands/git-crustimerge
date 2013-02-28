@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -e
+git merge -s subtree -X patience -X ignore-space-change -X ignore-all-space -X ignore-space-at-eol ${1+"$@"}
+

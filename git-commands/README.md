@@ -1,4 +1,9 @@
 # GIT commands
+## git crustimerge
+Merge a branch with little care for whitespace. Also known as Uncrustify's best friend.
+
+All it does is calling `git merge -s subtree -X patience -X ignore-space-change -X ignore-all-space -X ignore-space-at-eol [args...]`.
+
 ## git pr
 Checkout a GitHUB pull request locally, using its URL.
 
