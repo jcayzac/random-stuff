@@ -18,5 +18,5 @@ EOT
 	exit 1
 fi
 
-grep -v '^commit' < <(git rev-list --cherry --pretty=format:'%C(white red bold) %h %Creset %C(cyan)%cn%Creset %s %Cgreen(%cr)%Creset%C(yellow)%d%Creset' ${MERGE_BRANCH}..${SOURCE_BRANCH})
+grep -v '^commit' < <(git rev-list --cherry --pretty=format:'%C(white red bold) %h %Creset %C(cyan)%cn%Creset %s %Cgreen(%cr)%Creset%C(yellow)%d%Creset' ${MERGE_BRANCH}...${SOURCE_BRANCH} | grep -A1 '^commit +')
 
