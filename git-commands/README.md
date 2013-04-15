@@ -37,6 +37,7 @@ Note it doesn't try to delete certain branches:
 * develop
 * the branch that was passed as first parameter (i.e. the merge branch)
 * the currently checked-out branch
+* branches whose name start with the string `release/`.
 
 Also, it will try to delete branches on any remote (but will fail silently on those you don't have enough privileges).
 

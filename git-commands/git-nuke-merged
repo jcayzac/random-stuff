@@ -15,6 +15,7 @@ do
 	BRANCH=${BRANCH##\* }
 	[ "$BRANCH" == "master" ] && continue
 	[ "$BRANCH" == "develop" ] && continue
+	[ "${BRANCH:0:8}" == "release/" ] && continue
 	[ "$BRANCH" == "(no branch)" ] && continue
 	[ "$BRANCH" == "$MERGE_BRANCH" ] && continue
 	[ "$BRANCH" == "$(git rev-parse --abbrev-ref HEAD)" ] && continue
