@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+launchctl list | grep com.apple.rcd.plist && launchctl unload -w /System/Library/LaunchAgents/com.apple.rcd.plist
