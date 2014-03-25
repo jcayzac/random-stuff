@@ -28,12 +28,6 @@ sourceforge:boost/boost/${VERSION}/boost_${VERSION//./_}.tar.bz2
 show_progress 39518 unpacking.log "Unpacking" \
 <<< "tar xvj --strip-components 1 -f boost_${VERSION//./_}.tar.bz2 2>&1"
 
-sed -i '' \
--e 's#if \!defined(__APPLE__) \&\& \!defined(__OpenBSD__)#if \!defined(__APPLE__) \&\& \!defined(__OpenBSD__) \&\& \!defined(__ANDROID__)#' \
-libs/filesystem/v2/src/v2_operations.cpp
-
-less libs/filesystem/v2/src/v2_operations.cpp
-
 # <linkflags> and <linker-type> are required for the has_icu test
 # to pass
 cat >tools/build/v2/user-config.jam <<EOF
@@ -58,19 +52,11 @@ cp -v "${SIM_SDK}/usr/include/crt_externs.h" ./
 BOOST_LIBS_COMMA=${BOOST_LIBS// /,}
 echo "Bootstrapping (with libs $BOOST_LIBS_COMMA)"
 ./bootstrap.sh --with-toolset=gcc --with-libraries=$BOOST_LIBS_COMMA
-for arch in android_vfp3 android_neon android_x86 armv7 i386
+for arch in armv7 i386
 do
-	# set_android_neon
-	#./b2 -d+2 -q -j 4 toolset=gcc-smart target-os=linux link=static runtime-link=static threading=multi define=__GLIBC__
 	mkdir -p "build_$arch" "prefix_$arch"
 	set_$arch
-	if [ ${arch/android/} != $arch ]
-	then
-		os=linux
-		#CXXFLAGS="$CXXFLAGS -D__GLIBC__"
-	else
-		os=bsd
-	fi
+	os=bsd
 	export CXXFLAGS="$CXXFLAGS \
 -DBOOST_NO_INTRINSIC_WCHAR_T \
 -DBOOST_FILESYSTEM_VERSION=2 \

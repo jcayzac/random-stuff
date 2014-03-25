@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 LIB="z"
-VERSION="1.2.5"
+VERSION="1.2.8"
 . "$(dirname $0)/common"
 
-MD5="c735eab2d659a96e5a594c9e8541ad63"
+MD5="44d667c142d7cda120332623eab69f40"
 
 msg "Downloading tarball"
 http_fetch zlib-${VERSION}.tar.gz $MD5 \
@@ -12,7 +12,8 @@ http_fetch zlib-${VERSION}.tar.gz $MD5 \
 show_progress 265 unpacking.log "Unpacking" \
 <<< "tar xvz --strip-components 1 -f zlib-${VERSION}.tar.gz 2>&1"
 
-for arch in armv7 i386
+# Zlib doesn't build for arm64 yet!
+for arch in armv7 armv7s arm64 i386
 do
 	echo "Building for $arch"
 	set_$arch
@@ -20,14 +21,16 @@ do
 	show_progress 8 build/$arch/conf.log "    Configuring" \
 	<<< "./configure --static"
 	show_progress 16 build/$arch/build.log "    Building" \
-	<<< "$MAKE libz.a"
+	<<< "$MAKE libz.a AR=\"$LIBTOOL\""
 	mv libz.a build/$arch/
 	make distclean >/dev/null 2>&1
 done
 
 msg "Installing"
-lipo -create -output "$PREFIX/lib/libz.a" \
-		 -arch armv7 "build/armv7/libz.a" \
-		 -arch i386  "build/i386/libz.a"
+xcrun -sdk iphoneos -r lipo -create -output "$PREFIX/lib/libz.a" \
+-arch armv7 "build/armv7/libz.a" \
+-arch armv7s "build/armv7s/libz.a" \
+-arch arm64 "build/arm64/libz.a" \
+-arch i386  "build/i386/libz.a"
 
 cp zlib.h zconf.h "$PREFIX/include/"

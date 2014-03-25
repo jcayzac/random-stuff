@@ -50,7 +50,7 @@ done
 echo -n "Creating fat libraries: "
 for SLIB in crypto ssl
 do
-	lipo -create -output "$PREFIX/lib/lib$SLIB.a" \
+	xcrun -sdk iphoneos -r lipo -create -output "$PREFIX/lib/lib$SLIB.a" \
 			 -arch armv7 ".prefix/armv7/lib/lib$SLIB.a" \
 			 -arch i386  ".prefix/i386/lib/lib$SLIB.a"
 done

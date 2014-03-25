@@ -39,7 +39,7 @@ clean:
 	rm \$(LIB) \$(OBJS)
 EOT
 
-for arch in armv7 i386
+for arch in armv7 armv7s arm64 i386
 do
 	BUILD_DIR="$MY_TMP/build/$arch"
 	mkdir -p "$BUILD_DIR"
@@ -50,9 +50,11 @@ do
 done
 
 echo -n "Creating fat libraries: "
-lipo -create -output "$PREFIX/lib/liblzma-st.a" \
-		 -arch armv7 "$MY_TMP/build/armv7/liblzma-st.a" \
-		 -arch i386  "$MY_TMP/build/i386/liblzma-st.a"
+xcrun -sdk iphoneos -r lipo -create -output "$PREFIX/lib/liblzma-st.a" \
+-arch armv7  "$MY_TMP/build/armv7/liblzma-st.a" \
+-arch armv7s "$MY_TMP/build/armv7s/liblzma-st.a" \
+-arch arm64  "$MY_TMP/build/arm64/liblzma-st.a" \
+-arch i386   "$MY_TMP/build/i386/liblzma-st.a"
 echo OK
 
 mkdir -p "$PREFIX/include/lzma"

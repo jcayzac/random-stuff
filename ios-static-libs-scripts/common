@@ -186,157 +186,56 @@ IPHONE_SDKVERSION=$(xcodebuild 2>/dev/null -sdk iphoneos -version SDKVersion)
 
 set_ios_sdk() {
 	export SDK="$1"
-	export CC_BARE="$(xcodebuild 2>/dev/null -sdk $SDK -find gcc)"
+	export CC_BARE="$(xcrun 2>/dev/null -sdk $SDK -f clang)"
 	export CC="${CCACHE}${CC_BARE}"
-	export CXX_BARE="$(xcodebuild 2>/dev/null -sdk $SDK -find g++)"
+	export CXX_BARE="$(xcrun 2>/dev/null -sdk $SDK -f clang++)"
 	export CXX="${CCACHE}${CXX_BARE}"
-	export AR="$(xcodebuild 2>/dev/null -sdk $SDK -find ar)"
-	export AS="$(xcodebuild 2>/dev/null -sdk $SDK -find as)"
-	export NM="$(xcodebuild 2>/dev/null -sdk $SDK -find nm)"
-	export RANLIB="$(xcodebuild 2>/dev/null -sdk $SDK -find ranlib)"
-	export SYSROOT="$(xcodebuild 2>/dev/null -version -sdk $SDK Path)"
-	export PLATFORM_DIR="$(xcodebuild 2>/dev/null -version -sdk $SDK PlatformPath)"
-	export CFLAGS="-O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -fstrict-aliasing -ffast-math -isysroot $SYSROOT -isystem ${PREFIX}/include -DNDEBUG"
+	export AR="$(xcrun 2>/dev/null -sdk $SDK -f ar)"
+	export AS="$(xcrun 2>/dev/null -sdk $SDK -f as)"
+	export NM="$(xcrun 2>/dev/null -sdk $SDK -f nm)"
+	export RANLIB="$(xcrun 2>/dev/null -sdk $SDK -f ranlib)"
+	export LIBTOOL="$(xcrun 2>/dev/null -sdk $SDK -f libtool)"
+	export SYSROOT="$(xcrun --show-sdk-path --sdk $SDK)"
+	export PLATFORM_DIR="$(xcrun --show-sdk-platform-path --sdk $SDK)"
+	export CFLAGS="-miphoneos-version-min=5.0 -O3 -pipe -gdwarf-2 -pthread -fvisibility=hidden -fstrict-aliasing -ffast-math -isysroot $SYSROOT -I ${PREFIX}/include -DNDEBUG -D_FILE_OFFSET_BITS=64"
 	export CPP="$CC -E"
 	export CXXCPP="$CXX -E"
-	export PATH="$(xcodebuild 2>/dev/null -version -sdk $SDK PlatformPath)/Developer/usr/bin::/Developer/usr/bin:$ORIG_PATH"
+	export PATH="$PLATFORM_DIR/Developer/usr/bin:/Developer/usr/bin:$ORIG_PATH"
+}
+
+set_arm() {
+	set_ios_sdk "iphoneos"
+	export HOST="arm-apple-darwin"
 }
 
 set_armv7() {
-	set_ios_sdk "iphoneos"
+	set_arm
 	export CFLAGS="$CFLAGS -arch armv7 -mthumb -mcpu=cortex-a8 -mfloat-abi=softfp -mfpu=neon -ftree-vectorize"
 	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
 	export CPPFLAGS="$CFLAGS"
-	export HOST="arm-apple-darwin"
+}
+
+set_armv7s() {
+	set_arm
+	export CFLAGS="$CFLAGS -arch armv7s -mthumb -mfloat-abi=softfp -mfpu=neon -ftree-vectorize"
+	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+	export CPPFLAGS="$CFLAGS"
+}
+
+set_arm64() {
+	set_ios_sdk "iphoneos"
+	export CFLAGS="$CFLAGS -arch arm64"
+	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+	export CPPFLAGS="$CFLAGS"
+	export HOST="arm64-apple-darwin"
 }
 
 set_i386() {
 	set_ios_sdk "iphonesimulator"
-	export CFLAGS="$CFLAGS -arch i386 -march=i686 -msse3"
+	export CFLAGS="$CFLAGS -arch i386 -D_LARGEFILE64_SOURCE=1 -include unistd.h"
 	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
 	export CPPFLAGS="$CFLAGS"
 	export HOST="i686-apple-darwin"
-}
-
-set_android() {
-	local NDK_BUILD=$(which ndk-build 2>/dev/null)
-	if [ -z "$NDK_BUILD" ]
-	then
-		msg "ndk-build not in PATH"
-		exit 1
-	fi
-	local NDK_PATH="${NDK_BUILD%/*}"
-	local TOOLCHAIN_PATH=$(find -s "$NDK_PATH/toolchains" -depth 1 -iname "$TOOLCHAIN-*" | tail -n 1)
-	if [ ! -d "$TOOLCHAIN_PATH" ]
-	then
-		msg "$TOOLCHAIN toolchain not found"
-		exit 1
-	fi
-	local PLATFORM=$(find -s "$NDK_PATH/platforms" -depth 1 -iname "android-*" | tail -n 1)
-	if [ ! -d "$PLATFORM" ]
-	then
-		msg "platform not found"
-		exit 1
-	fi
-
-	case "$(uname -m)" in
-		i?86) HOST_ARCH=x86
-		;;
-		amd64) HOST_ARCH=x86_64
-		;;
-		powerpc) HOST_ARCH=ppc
-		;;
-	esac
-
-	local HOST_TAG=
-	case "$(uname -s)" in
-	Darwin)
-		HOST_TAG="darwin-$HOST_ARCH"
-		;;
-	Linux)
-		HOST_TAG="linux-$HOST_ARCH"
-		;;
-	FreeBsd)
-		HOST_TAG="freebsd-$HOST_ARCH"
-		;;
-	CYGWIN*|*_NT-*)
-		HOST_TAG=windows
-		;;
-	esac
-
-	local PREBUILT_BIN="${TOOLCHAIN_PATH}/prebuilt/${HOST_TAG}/bin"
-	export PATH=$PREBUILT_BIN:$PATH
-	export CC_BARE="${HOST}-gcc"
-	export CC="${CCACHE}${CC_BARE}"
-	export CXX_BARE="${HOST}-g++"
-	export CXX="${CCACHE}${CXX_BARE}"
-	export AR="${HOST}-ar"
-	export AS="${HOST}-as"
-	export NM="${HOST}-nm"
-	export RANLIB="${HOST}-ranlib"
-	export CPP="$CC -E"
-	export CXXCPP="$CXX -E"
-	export SYSROOT="$PLATFORM/arch-$ARCH"
-	export CFLAGS="$CFLAGS \
--mandroid \
--O3 \
--pipe \
--pthread \
--fvisibility=hidden \
--fstrict-aliasing \
--ffast-math \
---sysroot=$SYSROOT \
--isystem ${PREFIX}/include \
--DNDEBUG \
-"
-	export CXXFLAGS="$CFLAGS \
--fvisibility-inlines-hidden \
--fexceptions \
--frtti \
--isystem $NDK_PATH/sources/cxx-stl/gnu-libstdc++/include \
--isystem $NDK_PATH/sources/cxx-stl/gnu-libstdc++/libs/armeabi-v7a/include \
-"
-	unset CPPFLAGS
-}
-
-set_android_neon() {
-	ARCH="arm"
-	TOOLCHAIN="arm-linux-androideabi"
-	HOST="arm-linux-androideabi"
-	CFLAGS="\
--mcpu=cortex-a9 \
--mfpu=neon \
--mvectorize-with-neon-quad \
--mthumb \
--mfloat-abi=softfp \
--ftree-vectorize \
-"
-	set_android
-}
-
-set_android_vfp3() {
-	ARCH="arm"
-	TOOLCHAIN="arm-linux-androideabi"
-	HOST="arm-linux-androideabi"
-	CFLAGS="\
--march=armv7-a \
--mfpu=vfpv3-d16 \
--mthumb \
--mfloat-abi=softfp \
--ftree-vectorize \
-"
-	set_android
-}
-
-set_android_x86() {
-	ARCH="arm"
-	TOOLCHAIN="x86"
-	HOST="i686-android-linux"
-	CFLAGS="\
--march=i686 \
--msse3 \
-"
-	set_android
 }
 
 # Download a file
@@ -350,7 +249,7 @@ http_fetch() {
 
 	if [ -f "$DISTFILES/$FILE" ]
 	then
-		if md5sum -s -c - <<< "$MD5SUM  $DISTFILES/$FILE"
+		if [ "(stdin)= $MD5SUM" == "$(openssl dgst -md5 <$DISTFILES/$FILE)" ]
 		then
 			ln -sf "${DISTFILES}/${FILE}"
 			return
@@ -400,7 +299,7 @@ http_fetch() {
 		msg "  sudo port install aria2"
 		exit 1
 	fi
-	md5sum -s -c - <<<"$MD5SUM  $FILE"
+	[ "(stdin)= $MD5SUM" == "$(openssl dgst -md5 <$FILE)" ]
 	cp "$FILE" "$DISTFILES"/
 }
 
