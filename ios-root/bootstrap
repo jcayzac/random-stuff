@@ -7,7 +7,7 @@ XCRUN="$(xcrun -f xcrun)"
 TOOLCHAIN="$("$XCRUN" -f clang)"
 TOOLCHAIN="${TOOLCHAIN%/*}"
 export PATH="$TOOLCHAIN:/usr/bin:/bin:/usr/sbin:/sbin"
-export PREFIX="$1"
+export PREFIX="$(cd "${BASH_SOURCE[0]%/*}" && pwd)"
 
 mkdir -p "$PREFIX"/{bin,include,lib}
 mkdir -p "$PREFIX"/include/_
@@ -234,3 +234,37 @@ install() {
 }
 
 end_project
+
+##########
+NAME=re2
+VERSION="20140304"
+SIG="33f49bba5e7f25076f2531af8ce3cc4a0e3916b8"
+FILE="${NAME}-${VERSION}.tgz"
+ARCHIVE="$FILES_DIR/$FILE"
+
+begin_project
+
+prepare() {
+	get "$ARCHIVE" "$SIG" "https://re2.googlecode.com/files/$FILE"
+	tar xz --strip-components 1 -f "$ARCHIVE"
+}
+
+build() {
+	make $MAKE_OPTS obj/libre2.a \
+		CXX=clang++ CXXFLAGS="$CXXFLAGS" \
+		ARFLAGS="crus" \
+		PREFIX="$PREFIX"
+	add_lib libre2.a $1 obj/libre2.a
+	make -s clean
+}
+
+install() {
+	mkdir -p "$PREFIX/include/re2"
+	cp -av libre2.a "$PREFIX/lib"/
+	cp -av re2/{filtered_re2,re2,set,stringpiece,variadic_function}.h "$PREFIX/include/re2"/
+}
+
+end_project
+
+
+
