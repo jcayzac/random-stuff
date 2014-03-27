@@ -1,0 +1,236 @@
+#!/usr/bin/env bash
+set -e -u -o pipefail
+
+: ${SOURCEFORGE_MIRROR:=jaist}
+
+XCRUN="$(xcrun -f xcrun)"
+TOOLCHAIN="$("$XCRUN" -f clang)"
+TOOLCHAIN="${TOOLCHAIN%/*}"
+export PATH="$TOOLCHAIN:/usr/bin:/bin:/usr/sbin:/sbin"
+export PREFIX="$1"
+
+mkdir -p "$PREFIX"/{bin,include,lib}
+mkdir -p "$PREFIX"/include/_
+cat >"$PREFIX"/include/_/inject.h <<EOT
+#include <unistd.h>
+EOT
+PKG_DIR="$PREFIX"/var/packages
+mkdir -p "$PKG_DIR"
+BUILD_DIR="$PREFIX"/var/tmp/build
+FILES_DIR="$PREFIX"/var/tmp/files
+
+get() {
+	declare FILE="$1" SIG="$2" URL="$3"
+
+	#if [ -f "$FILE" ] && [ "(stdin)= $SIG" == "$(openssl dgst -ripemd160 <"$FILE")" ]
+	if [ -f "$FILE" ] && [ "$SIG" == "$(openssl dgst -ripemd160 <"$FILE")" ]
+	then
+		return 0
+	fi
+
+	if [ "${URL::12}" == "sourceforge:" ]
+	then
+		URL="http://${SOURCEFORGE_MIRROR}.dl.sourceforge.net/project/${URL#*:}"
+	fi
+
+	curl --create-dirs -L -o "$FILE" "$URL"
+	declare SIG2="$(openssl dgst -ripemd160 <"$FILE")"
+	echo "ripemd160(${FILE#*/}) = $SIG2"
+	#[ "(stdin)= $SIG" == "$SIG2" ]
+	[ "$SIG" == "$SIG2" ]
+}
+
+set_ios_sdk() {
+	declare SDK="$1"
+	export SYSROOT="$("$XCRUN" --show-sdk-path --sdk "$SDK")"
+	export PLATFORM_DIR="$("$XCRUN" --show-sdk-platform-path --sdk "$SDK")"
+	CFLAGS="\
+-O3 -pipe \
+-pthread \
+-fstrict-aliasing \
+-fomit-frame-pointer \
+-ffast-math \
+-DNDEBUG -D_FILE_OFFSET_BITS=64 \
+-isysroot $SYSROOT \
+-isystem $SYSROOT/usr/include \
+-isystem $PREFIX/include \
+-include $PREFIX/include/_/inject.h \
+"
+	if [ "$SDK" == "macosx" ]
+	then
+		export CFLAGS="$CFLAGS -mmacosx-version-min=10.9"
+	else
+		export CFLAGS="$CFLAGS -miphoneos-version-min=5.0"
+	fi
+}
+
+set_device() {
+	set_ios_sdk iphoneos
+	export CFLAGS="\
+$CFLAGS \
+-arch armv7 -arch armv7s -arch arm64 -mthumb -mfloat-abi=softfp -mfpu=neon \
+-ftree-vectorize \
+" \
+	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+	export CPPFLAGS="$CFLAGS"
+	export HOST="arm-apple-darwin11"
+}
+
+set_simulator() {
+	set_ios_sdk iphonesimulator
+	export CFLAGS="$CFLAGS -arch i386 -D_LARGEFILE64_SOURCE=1" \
+	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+	export CPPFLAGS="$CFLAGS"
+	export HOST="i686-apple-darwin11"
+}
+
+set_host() {
+	set_ios_sdk macosx
+	unset SYSROOT PLATFORM_DIR
+	export CFLAGS="$CFLAGS -arch x86_64"
+	export CXXFLAGS="$CFLAGS -fvisibility-inlines-hidden"
+	export CPPFLAGS="$CFLAGS"
+	export HOST="x86_64-apple-darwin11"
+}
+
+MAKE_OPTS='-j4 -S -s'
+ARCHS="device simulator host"
+
+add_lib() {
+	# add_lib name arch [path]
+	mkdir -p ".build/libs/$1"
+	cp -av "${3:-$1}" ".build/libs/$1/${2}.a"
+}
+
+begin_project() {
+	unset prepare build install
+	cat <<-EOT
+	=======================================
+	Project: $NAME v$VERSION
+	=======================================
+
+	EOT
+}
+
+end_project() {
+	declare WORK_DIR="${BUILD_DIR}/${NAME}"
+	if [ ! -f "$PKG_DIR/${NAME}-$VERSION" ]
+	then
+		[ -d "$WORK_DIR" ] && rm -rf "$WORK_DIR"
+		mkdir -p "$WORK_DIR"
+		cd "$WORK_DIR"
+		mkdir -p .build/libs
+		eval mkdir .build/{${ARCHS// /,}}
+
+		printf "\nPreparing\n\n"
+		prepare
+
+		for arch in $ARCHS
+		do
+			printf "\nBuilding for %s\n\n" "$arch"
+			set_$arch
+			build "$arch"
+		done
+
+		for lib in .build/libs/*
+		do
+			lipo -create -output "${lib##*/}" "$lib"/*.a
+		done
+
+		printf "\nInstalling\n\n"
+		install
+		touch "$PKG_DIR/${NAME}-$VERSION"
+	fi
+
+	printf "\nDone\n\n"
+}
+
+##########
+NAME=zlib
+VERSION="1.2.8"
+SIG="870de028dab3bd16b134b98c426cda387907bbd7"
+FILE="${NAME}-${VERSION}.tar.gz"
+ARCHIVE="${FILES_DIR}/${FILE}"
+
+begin_project
+
+prepare() {
+	get "$ARCHIVE" "$SIG" "sourceforge:libpng/zlib/$VERSION/$FILE"
+	tar xz --strip-components 1 -f "$ARCHIVE"
+}
+
+build() {
+	./configure --static --prefix="$PREFIX"
+	make $MAKE_OPTS libz.a CC=clang CFLAGS="$CFLAGS"
+	add_lib libz.a $1
+	make -s distclean
+}
+
+install() {
+	cp -av libz.a "$PREFIX/lib"/
+	cp -av zlib.h zconf.h "$PREFIX/include"/
+}
+
+end_project
+
+##########
+NAME=bzip2
+VERSION="1.0.6"
+SIG="cc31bbae95e8eec259cef7627eae0c667654a339"
+FILE="${NAME}-${VERSION}.tar.gz"
+ARCHIVE="$FILES_DIR/$FILE"
+
+begin_project
+
+prepare() {
+	get "$ARCHIVE" "$SIG" "http://bzip.org/$VERSION/$FILE"
+	tar xz --strip-components 1 -f "$ARCHIVE"
+}
+
+build() {
+	declare ACTION=libbz2.a
+	if [ "$1" == "host" ]
+	then
+		ACTION=install
+	fi
+
+	make $MAKE_OPTS $ACTION CC=clang CFLAGS="$CFLAGS" PREFIX="$PREFIX"
+	add_lib libbz2.a $1
+	make -s distclean
+}
+
+install() {
+	cp -av libbz2.a "$PREFIX/lib"/
+	cp -av bzlib.h "$PREFIX/include"/
+}
+
+end_project
+
+##########
+NAME=openssl
+VERSION="1.0.0e"
+SIG="f7b7c8146592bb0924f145b1e3382b5a1d9283e4"
+FILE="${NAME}-${VERSION}.tar.gz"
+ARCHIVE="$FILES_DIR/$FILE"
+
+begin_project
+
+prepare() {
+	get "$ARCHIVE" "$SIG" "http://www.openssl.org/source/$FILE"
+	tar xz --strip-components 1 -f "$ARCHIVE"
+}
+
+build() {
+	./Configure --openssldir="$PREFIX" no-hw no-shared no-asm no-zlib no-krb5 no-dso no-sse2 "BSD-generic32:$CFLAGS"
+	make $MAKE_OPTS build_libs CC=clang CFLAG="$CFLAGS" AR="libtool -o" PREFIX="$PREFIX"
+	add_lib libcrypto.a $1
+	add_lib libssl.a $1
+	make -s clean
+}
+
+install() {
+	cp -av libssl.a libcrypto.a "$PREFIX/lib"/
+	cp -avL include/openssl "$PREFIX/include"/
+}
+
+end_project
