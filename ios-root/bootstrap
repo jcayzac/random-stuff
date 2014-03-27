@@ -22,8 +22,7 @@ FILES_DIR="$PREFIX"/var/tmp/files
 get() {
 	declare FILE="$1" SIG="$2" URL="$3"
 
-	#if [ -f "$FILE" ] && [ "(stdin)= $SIG" == "$(openssl dgst -ripemd160 <"$FILE")" ]
-	if [ -f "$FILE" ] && [ "$SIG" == "$(openssl dgst -ripemd160 <"$FILE")" ]
+	if [ -f "$FILE" ] && [ "$SIG" == "$(/usr/bin/openssl dgst -ripemd160 <"$FILE")" ]
 	then
 		return 0
 	fi
@@ -34,7 +33,7 @@ get() {
 	fi
 
 	curl --create-dirs -L -o "$FILE" "$URL"
-	declare SIG2="$(openssl dgst -ripemd160 <"$FILE")"
+	declare SIG2="$(/usr/bin/openssl dgst -ripemd160 <"$FILE")"
 	echo "ripemd160(${FILE#*/}) = $SIG2"
 	#[ "(stdin)= $SIG" == "$SIG2" ]
 	[ "$SIG" == "$SIG2" ]
@@ -208,8 +207,8 @@ end_project
 
 ##########
 NAME=openssl
-VERSION="1.0.0e"
-SIG="f7b7c8146592bb0924f145b1e3382b5a1d9283e4"
+VERSION="1.0.1f"
+SIG="db8c07f8753fab2b76118d4c18175290356ed144"
 FILE="${NAME}-${VERSION}.tar.gz"
 ARCHIVE="$FILES_DIR/$FILE"
 
@@ -229,6 +228,7 @@ build() {
 }
 
 install() {
+	[ ! -d "$PREFIX/include/openssl" ] || rm -rf "$PREFIX/include/openssl"
 	cp -av libssl.a libcrypto.a "$PREFIX/lib"/
 	cp -avL include/openssl "$PREFIX/include"/
 }
@@ -259,9 +259,44 @@ build() {
 }
 
 install() {
-	mkdir -p "$PREFIX/include/re2"
+	declare H="$PREFIX/include/re2"
+	[ ! -d "$H" ] || rm -rf "$H"
+	mkdir -p "$H"
 	cp -av libre2.a "$PREFIX/lib"/
-	cp -av re2/{filtered_re2,re2,set,stringpiece,variadic_function}.h "$PREFIX/include/re2"/
+	cp -av re2/{filtered_re2,re2,set,stringpiece,variadic_function}.h "$H"/
+}
+
+end_project
+
+##########
+NAME=pcre
+VERSION="8.34"
+SIG="b1fc3afaf9a43592f5538151038e66aaef32c651"
+FILE="${NAME}-${VERSION}.tar.bz2"
+ARCHIVE="$FILES_DIR/$FILE"
+
+begin_project
+
+prepare() {
+	get "$ARCHIVE" "$SIG" "sourceforge:pcre/pcre/$VERSION/$FILE"
+	tar xj --strip-components 1 -f "$ARCHIVE"
+	# build fails for now
+	exit
+}
+
+build() {
+	CC=clang CXX=clang++ CPP="cpp -c" CXXCPP="clang++ -E" ./configure --host="$HOST" --prefix="$PREFIX" --enable-static --disable-shared --enable-utf --enable-unicode-properties --enable-pcregrep-libz --enable-pcregrep-libbz2
+	make $MAKE_OPTS CFLAGS="$CFLAGS" ARFLAGS="crus"
+	add_lib libre2.a $1 obj/libre2.a
+	make -s clean
+}
+
+install() {
+	declare H="$PREFIX/include/re2"
+	[ ! -d "$H" ] || rm -rf "$H"
+	mkdir -p "$H"
+	cp -av libre2.a "$PREFIX/lib"/
+	cp -av re2/{filtered_re2,re2,set,stringpiece,variadic_function}.h "$H"/
 }
 
 end_project
