@@ -82,6 +82,29 @@
 <script>
 (function (global, document, Object, undefined) {
 	"use strict";
+	var prefixes = ['ms', 'webkit', 'moz', 'o'], prefixCount = length(prefixes)
+
+	/**
+	 * If **obj[assign]**
+	 */
+	function prefixHell(obj, name, assign) {
+		var cap = capitalize(name)
+		obj[assign] = obj[assign] || obj[name] || obj['webkit' + cap] || obj['WebKit' + cap] || obj['moz' + cap] || obj['Moz' + cap] || obj['ms' + cap]
+
+		if (!obj[assign]) {
+			for (var i = -1, cap = capitalize(name), p, n=obj[name]; p = prefixes[++i], i < prefixCount && !n;)
+				n = obj[p + cap]
+			obj[assign] = n
+		}
+	}
+
+	// Resolve a few methods
+	for (var methods = [
+			Element.prototype, 'matchesSelector', 'matches',
+			global, 'requestAnimationFrame',,
+			global, 'cancelAnimationFrame',,
+		], l = length(methods), i = -1; i < l;)
+		prefixHell(methods[++i], methods[++i], methods[++i])
 
 	/**
 	 * Convert anything to an array.
@@ -89,7 +112,13 @@
 	 * @param {*} x Any value.
 	 * @return {Array}
 	 */
-	function toArray(x) { return x = x || [], Array.isArray(x) ? x : Array.prototype.slice.call(x) }
+	function toArray(x) { return Array.isArray(x) ? x : Array.prototype.slice.call(x || []) }
+
+	/**
+	 * @param {!Object} a  An array-like object.
+	 * @return {Number} The length of **a**.
+	 */
+	function length(a) { return a.length >>> 0 }
 
 	/**
 	 * Get the name of an object's class or type.
@@ -100,12 +129,13 @@
 	 */
 	function typeOf(x) { return Object.prototype.toString.call(x).slice(8, -1) }
 
-	function ifNotNull(x, else_) {
-		// treat undefined as null
-		return x == null ? else_ : x
-	}
-
-
+	/**
+	 * Treats undefined as null.
+	 * @param {*}       O  A value.
+	 * @param {*} DEFAULT  Default value.
+	 * @return {*}         The value if it's defined and not null, **DEFAULT** otherwise.
+	 */
+	function defaults(O, DEFAULT) { return O == null ? DEFAULT : O }
 
 	/**
 	 * Check that object **x** is an instance of class **c**.
@@ -115,9 +145,12 @@
 	 * @param {!Function} c  A class.
 	 * @return {boolean}
 	 */
-	function isA(x, c) {
-		for (var cp = c.prototype, r; x != null && !r; x = typeof x == 'object' ? Object.getPrototypeOf(x) : null)
-			r = x.constructor === c || cp.isPrototypeOf(x)
+	function isInstanceOf(x, c) {
+		for (var cp = c.prototype, r = x instanceof c;
+		     x != null && !r;
+		     x = typeof x === 'object' ? Object.getPrototypeOf(x) : null
+		    ) r = x.constructor === c || cp.isPrototypeOf(x)
+
 		return r
 	}
 
@@ -129,34 +162,11 @@
 	 * @return {Function}
 	 */
 	function classOf(x) {
-		// == null returns true if x is undefined too
-		if (x != null) return x.constructor ? x.constructor : typeof x == 'object' ? Object.getPrototypeOf(x) : global[capitalize(typeof x)]
-	}
+		if (x != null) {
+			var ctor = x.constructor, type = typeof x
 
-	/**
-	 * Invoke the constructor of class **c**.
-	 *
-	 * Useful to make constructors work without **new**. For example:
-	 *
-	 * ```js
-	 * function XYZ(o) {
-	 *     if (!this) return createInstance(XYZ, arguments)
-	 *
-	 *     this.foo = o
-	 * }
-	 *
-	 * // These two are now equivalent:
-	 * new XYZ(42)
-	 * XYZ(42)
-	 * ```
-	 *
-	 * @param {function(new:T, ...)* T} c  A class.
-	 * @param {Array} args  Constructor arguments.
-	 * @return {T}
-	 * @template T
-	 */
-	function createInstance(c, args) {
-		return c = c.bind.apply(c, [null].concat(Array.prototype.slice.call(args))), new c()
+			return ctor ? ctor : type === 'object' ? Object.getPrototypeOf(x) : global[capitalize(type)]
+		}
 	}
 
 	/**
@@ -167,14 +177,14 @@
 	 * @return {Array}
 	 */
 	function uniqueItems(a) {
-		for (var r = [], l = a.length >>> 0, i = 0, e; i < l; ++i)
-			e = a[i], r.indexOf(e) < 0 && r.push(e)				
+		for (var r = [], l = length(a), i = -1, e; e = a[++i], i < l;)
+			r.indexOf(e) < 0 && r.push(e)
 	}
 
 	// If we have Set and iterators we can do (much) better:
 	if (global.Set) try {
 		// Only Mozilla supports ES6 comprehensions right now
-		uniqueItems = new Function('a', 'return [x for(x of Set(a))]')
+		uniqueItems = Function('a', 'return[x for(x of Set(a))]')
 	} catch(e) {
 		// V8-with-harmony-switched-on has Set but doesn't support iterating yet
 		// WebKit has a weird empty SetIterator class
@@ -193,12 +203,13 @@
 	 */
 	function shallowCopy(d, s) {
 		if (d && s)
-			for (var a = Object.getOwnPropertyNames(s), l = a.length >>> 0, k; l;)
+			for (var a = Object.getOwnPropertyNames(s), l = length(a), k; l;)
 				k = a[--l], Object.defineProperty(d, k, Object.getOwnPropertyDescriptor(s, k))
 	}
 
 	/**
 	 * Create a function that can invoke function **fn** only once every **ms** milliseconds.
+	 * Only the most recently-passed arguments are used (intermediate calls are dropped).
 	 *
 	 * @param {Function} fn  A function.
 	 * @param {number}   ms  Milliseconds.
@@ -239,7 +250,7 @@
 		}
 
 		function flush() {
-			for (var i=0, l=Q.length >>> 0, t; t=Q[++i], i<l;) t[0].apply(null, t[1])
+			for (var i=-1, l=length(Q), t; t=Q[++i], i<l;) t[0].apply(null, t[1])
 			Q.length=next=0
 		}
 
@@ -261,38 +272,28 @@
 		new Promise(function(r) { resolve = r })
 		return classOf(resolve) === Function
 	})())) global.Promise = (function() {
+		var fulfill = resolution(1),
+			reject  = resolution(2)
 
 		function resolve(promise, value) {
 			// TODO: remove !
 			if (promise === value || !handleThenable(promise, value)) fulfill(promise, value)
 		}
 
-		function fulfill(promise, value) {
-			if (promise._state === undefined) {
-				promise._state = 0
-				promise._detail = value
+		function resolution(n) {
+			function invokePublish(promise) {
+				publish(promise, promise._state = n)
+			}
 
-				nextTick(publishFulfillment, [promise])
+			return function(promise, detail) {
+				if (promise._state === undefined) {
+					promise._state = 0
+					promise._detail = detail
+
+					nextTick(invokePublish, [promise])
+				}
 			}
 		}
-
-		function reject(promise, reason) {
-			if (promise._state === undefined) {
-				promise._state = 0
-				promise._detail = reason
-
-				nextTick(publishRejection, [promise])
-			}
-		}
-
-		function publishFulfillment(promise) {
-			publish(promise, promise._state = 1)
-		}
-
-		function publishRejection(promise) {
-			publish(promise, promise._state = 2)
-		}
-
 
 		function invokeResolver(resolver, promise) {
 			function ok(value) { resolve(promise, value) }
@@ -305,12 +306,12 @@
 		function invokeCallback(settled, promise, callback, detail) {
 			var hasCallback = classOf(callback) === Function, value, error
 
-			if (hasCallback) {
+			if (hasCallback)
 				try { value = callback(detail) }
 				catch(e) { error = e }
-			} else value = detail
+			else value = detail
 
-			if (!handleThenable(promise, value)) { // TODO: remove !
+			if (!handleThenable(promise, value)) {
 				if (error) reject(promise, error)
 				else if (hasCallback || settled === 1) resolve(promise, value)
 				else if (settled === 2) reject(promise, value)
@@ -321,9 +322,9 @@
 			var resolved
 
 			try {
-				if (classOf(value) === Function || isA(value, Object)) {
+				if (classOf(value) === Function || isInstanceOf(value, Object)) {
 					if (classOf(value.then) === Function) return value.then.call(value, function(val) {
-						return resolved || (value !== val ? resolve : fulfill)(promise, val), resolved = true
+						return resolved || (value === val ? fulfill : resolve)(promise, val), resolved = true
 					}, function(val) {
 						return resolved || reject(promise, val), resolved = true
 					}), true
@@ -334,17 +335,22 @@
 		}
 
 		function subscribe(promise, child, ok, ng) {
-			promise._subscribers = promise._subscribers.concat([child, ok, ng])
+			promise._subscribers = promise._subscribers.concat(child, ok, ng)
 		}
 
 		function publish(promise, state) {
-			for (var subscribers = promise._subscribers, detail = promise._detail, i=0, l=subscribers.length>>>0; i<l; i+=3)
+			for (var subscribers = promise._subscribers, detail = promise._detail, i=0, l=length(subscribers); i<l; i+=3)
 				invokeCallback(state, subscribers[i], subscribers[i + state], detail)
 
 			promise._subscribers = []
 		}
 
+		/**
+		 * @constructor
+		 */
 		function P(resolver) {
+			if (!this) return new P(resolver)
+
 			this._subscribers = []
 			invokeResolver(resolver, this)
 		}
@@ -356,7 +362,7 @@
 			_detail: undefined,
 
 			then: function(ok, ng) {
-				var promise = this, thenPromise = new P(function() {})
+				var promise = this, thenPromise = P(function() {})
 
 				if (promise._state) nextTick(invokeCallback, [promise._state, thenPromise, arguments[promise._state - 1], promise._detail])
 				else subscribe(promise, thenPromise, ok, ng)
@@ -370,7 +376,7 @@
 		}
 
 		P.all = function(promises) {
-			return new P(function(ok, ng) {
+			return P(function(ok, ng) {
 				function resolver(index) {
 					return function(value) { resolveAll(index, value) }
 				}
@@ -380,28 +386,28 @@
 					if (!--remaining) ok(results)
 				}
 
-				var results = [], length = remaining = promises.length >>> 0, p, i
+				var results = [], l = remaining = length(promises), p, i
 				if (!remaining) ok([])
 
-				for (i = -1; p = promises[++i], i < length;)
+				for (i = -1; p = promises[++i], i < l;)
 					if (classOf(p && p.then) === Function) p.then(resolver(i), ng)
 					else resolveAll(i, p)
 			})
 		}
 
 		P.race = function(promises) {
-			return new P(function(ok, ng) {
-				for (var p, i = -1, l = promises.length >>> 0; p = promises[++i], i < l;)
+			return P(function(ok, ng) {
+				for (var p, i = -1, l = length(promises); p = promises[++i], i < l;)
 					if (classOf(p && p.then) === Function) p.then(ok, ng)
 					else ok(p)
 			})
 		}
 		P.resolve = function(v) {
-			return classOf(v) === P ? v : new P(function(ok) { ok(v) })
+			return classOf(v) === P ? v : P(function(ok) { ok(v) })
 		}
 
 		P.reject = function(r) {
-			return new P(function (ok, ng) { ng(r) })
+			return P(function (ok, ng) { ng(r) })
 		}
 
 		return P
@@ -413,34 +419,10 @@
 
 
 	// DOM
-	var ElementPrototype_ = Element.prototype,
-		prefixes = ['ms', 'webkit', 'moz', 'o'],
-		prefixCount = prefixes.length >>> 0,
-		matches = 'matches',
-		matchesSelector = 'matchesSelector'
-
-	;(function(autoPrefixItems, autoPrefixItem) {
-		while(autoPrefixItem = autoPrefixItems.pop()) {
-			for (var
-				obj = autoPrefixItem[0],
-				name = autoPrefixItem[1],
-				cap = capitalize(name),
-				i = 0;
-				i < prefixCount && !obj[name];
-				obj[name] = obj[prefixes[i++] + cap]
-			);
-		}
-	})([
-		[ElementPrototype_, matchesSelector],
-		[global, 'requestAnimationFrame'],
-		[global, 'cancelAnimationFrame'],
-	])
-
-	ElementPrototype_[matches] = ElementPrototype_[matches] || ElementPrototype_[matchesSelector]
 
 	function bind_unbind_(t, e, fn, c) {
 		var a = e.split(' '),
-			l = a.length >>> 0
+			l = length(a)
 		while (l) c.call(t, a[--l], fn, false)
 	}
 
@@ -452,9 +434,9 @@
 
 
 	function Duh(o) {
-		if (!this) return createInstance(Duh, arguments)
+		if (!this) return new Duh(o)
 
-		if (isA(o, Function)) {
+		if (isInstanceOf(o, Function)) {
 			console.log('function', o)
 		}
 	}
