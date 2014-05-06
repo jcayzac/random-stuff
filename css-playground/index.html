@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<style>
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+.bla {
+	position: absolute;
+	background: #000;
+}
+.out {
+	background: #ccc;
+}
+.out .bla {
+	background: #c00;
+}
+
+#container {
+	padding: 2em;
+	margin: 1em;
+}
+
+#list {
+	position: relative;
+	padding-top: 50px;
+	background: #888;
+	width: 50%;
+	margin-bottom: 80px;
+	height: 200px;
+	overflow: scroll;
+}
+
+.post {
+	padding-top: 2em;
+	width: 100%;
+	min-height: 3em;
+}
+	</style>
+</head>
+<body>
+<div id="container">
+	<header>
+		<h1>title</h1>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+	</header>
+	<div id="list">
+		<div style="position:absolute; top:0; left:-100px;">left</div>
+		<div style="position:absolute; top:0; right:2000px;">right</div>
+		<div id="foo" class="bla"></div>
+		<article class="post">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+	</div>
+	<footer>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+	</footer>
+</div>
+<script>
+(function (w, d) {
+
+
+
+
+
+	d.addEventListener("DOMContentLoaded", function() {
+		var list = d.getElementById('list'),
+			foo = d.getElementById('foo')
+
+
+		function throttle(ms, callback) {
+			var timer, lastCall = 0
+			return function() {
+				var diff = lastCall - Date.now(),
+					args = arguments,
+					cb = function() {
+						timer = null
+						lastCall = Date.now()
+						callback.apply(timer, args)
+					}
+				timer = timer || (ms > diff && setTimeout(cb, ms + diff) || cb())
+			}
+		}
+
+		function updateWorker(e) {
+			console.log(e)
+			function cb(left, top, width, height) {
+				var s = foo.style,
+					c = (foo.shadow ? foo.shadow : (foo.shadow = [])),
+
+				left   = (left + 10) + "px"
+				top    = (top + 10) + "px"
+				width  = (width - 20) + "px"
+				height = (height - 20) + "px"
+
+				if (c[0] != left)   s.left   = c[0] = left
+				if (c[1] != top)    s.top    = c[1] = top
+				if (c[2] != width)  s.width  = c[2] = width
+				if (c[3] != height) s.height = c[3] = height
+			}
+
+
+			var lr  = list.getBoundingClientRect(),
+				height = Math.min(lr.bottom, w.innerHeight) - Math.max(lr.top, 0)
+
+			if (height > 0) {
+				var width = Math.min(lr.right, w.innerWidth) - Math.max(lr.left, 0)
+				if (width > 0) {
+					// intersects!
+					var left = list.scrollLeft - Math.min(lr.left, 0),
+						top = list.scrollTop - Math.min(lr.top, 0)
+
+					cb(left, top, width, height)
+					return;
+				}
+			}
+
+			// no intersection
+			cb(0,0,0,0)
+		}
+
+		var update = throttle(1000, updateWorker)
+		d.addEventListener('scroll', update, false);
+		d.addEventListener('resize', update, false);
+		d.addEventListener('load', update, false);
+		list.addEventListener('scroll', update, false);
+		list.addEventListener('resize', update, false);
+
+
+	}, false);
+})(window, document);
+</script>
+</body>
+</html>

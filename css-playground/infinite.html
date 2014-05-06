@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<style>
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+#list {
+	position: relative;
+	padding-top: 50px;
+	background: #888;
+	width: 50%;
+	margin-bottom: 80px;
+	height: 200px;
+	overflow: scroll;
+}
+
+.post {
+	padding-top: 2em;
+	width: 100%;
+	min-height: 3em;
+}
+	</style>
+</head>
+<body>
+<div id="container">
+	<header>
+		<h1>title</h1>
+	</header>
+	<div id="list">
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+		<article class="post">xxxx</article>
+	</div>
+	<footer>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+		Bla bla bla<br>
+	</footer>
+</div>
+<script>
+(function (global, document, Object, undefined) {
+	"use strict";
+
+	/**
+	 * Convert anything to an array.
+	 *
+	 * @param {*} x Any value.
+	 * @return {Array}
+	 */
+	function toArray(x) { return x = x || [], Array.isArray(x) ? x : Array.prototype.slice.call(x) }
+
+	/**
+	 * Get the name of an object's class or type.
+	 * Works with any type.
+	 *
+	 * @param {*} x Any value.
+	 * @return {string}
+	 */
+	function typeOf(x) { return Object.prototype.toString.call(x).slice(8, -1) }
+
+	function ifNotNull(x, else_) {
+		// treat undefined as null
+		return x == null ? else_ : x
+	}
+
+
+
+	/**
+	 * Check that object **x** is an instance of class **c**.
+	 * Works with any type.
+	 *
+	 * @param {*}         x  Any value.
+	 * @param {!Function} c  A class.
+	 * @return {boolean}
+	 */
+	function isA(x, c) {
+		for (var cp = c.prototype, r; x != null && !r; x = typeof x == 'object' ? Object.getPrototypeOf(x) : null)
+			r = x.constructor === c || cp.isPrototypeOf(x)
+		return r
+	}
+
+	/**
+	 * Return the class of **x**.
+	 * Works with any type.
+	 *
+	 * @param {*}         x  Any value.
+	 * @return {Function}
+	 */
+	function classOf(x) {
+		// == null returns true if x is undefined too
+		if (x != null) return x.constructor ? x.constructor : typeof x == 'object' ? Object.getPrototypeOf(x) : global[capitalize(typeof x)]
+	}
+
+	/**
+	 * Invoke the constructor of class **c**.
+	 *
+	 * Useful to make constructors work without **new**. For example:
+	 *
+	 * ```js
+	 * function XYZ(o) {
+	 *     if (!this) return createInstance(XYZ, arguments)
+	 *
+	 *     this.foo = o
+	 * }
+	 *
+	 * // These two are now equivalent:
+	 * new XYZ(42)
+	 * XYZ(42)
+	 * ```
+	 *
+	 * @param {function(new:T, ...)* T} c  A class.
+	 * @param {Array} args  Constructor arguments.
+	 * @return {T}
+	 * @template T
+	 */
+	function createInstance(c, args) {
+		return c = c.bind.apply(c, [null].concat(Array.prototype.slice.call(args))), new c()
+	}
+
+	/**
+	 * Returns an array of the unique items found in **a**.
+	 * Works with any iterable.
+	 *
+	 * @param {{length: number}} a  An iterable object.
+	 * @return {Array}
+	 */
+	function uniqueItems(a) {
+		for (var r = [], l = a.length >>> 0, i = 0, e; i < l; ++i)
+			e = a[i], r.indexOf(e) < 0 && r.push(e)				
+	}
+
+	// If we have Set and iterators we can do (much) better:
+	if (global.Set) try {
+		// Only Mozilla supports ES6 comprehensions right now
+		uniqueItems = new Function('a', 'return [x for(x of Set(a))]')
+	} catch(e) {
+		// V8-with-harmony-switched-on has Set but doesn't support iterating yet
+		// WebKit has a weird empty SetIterator class
+		if (Set.prototype.keys && !global.SetIterator) uniqueItems = function(a) {
+			for (var s = new Set(a), r = new Array(s.size), i=-1, iter = s.keys(), v = iter.next(); !v.done; v = iter.next())
+				r[++i] = v.value
+			return r
+		}
+	}
+
+	/**
+	 * Copy object **s**'s properties into object **d**.
+	 *
+	 * @param {Object} d  Destination object.
+	 * @param {Object} s  Source object.
+	 */
+	function shallowCopy(d, s) {
+		if (d && s)
+			for (var a = Object.getOwnPropertyNames(s), l = a.length >>> 0, k; l;)
+				k = a[--l], Object.defineProperty(d, k, Object.getOwnPropertyDescriptor(s, k))
+	}
+
+	/**
+	 * Create a function that can invoke function **fn** only once every **ms** milliseconds.
+	 *
+	 * @param {Function} fn  A function.
+	 * @param {number}   ms  Milliseconds.
+	 * @return {Function}
+	 */
+	function throttle(fn, ms) {
+		var timer, last = 0
+		return function() {
+			var args = arguments, self = this
+			timer = timer || setTimeout(function() {
+				last = Date.now()
+				timer = fn.apply(self, args), 0
+			}, Math.max(0, ms + last - Date.now()))
+		}
+	}
+
+	/**
+	 * Create a string like **x** but with the first character made uppercase and the rest lowercase.
+	 *
+	 * @param {string} x  A string.
+	 * @return {string}
+	 */
+	function capitalize(x) {
+		return x && x[0].toUpperCase() + x.slice(1).toLowerCase()
+	}
+
+	/**
+	 * Execute a function asynchronously, as soon as possible.
+	 *
+	 * @param {Function} fn    A function
+	 * @param {Array}    args  Arguments to pass to **fn**.
+	 */
+	var nextTick = (function() {
+		var Q = [], MO, next, node, i
+
+		function schedule() {
+			next = next || setTimeout(flush, 0)
+		}
+
+		function flush() {
+			for (var i=0, l=Q.length >>> 0, t; t=Q[++i], i<l;) t[0].apply(null, t[1])
+			Q.length=next=0
+		}
+
+		// mutation observers are faster than timers
+		if (MO = global.MutationObserver || global.WebKitMutationObserver) {
+			node = document.createTextNode('')
+			schedule = function() { node.data = (i = ++i % 2) }
+			new MO(flush).observe(node, { characterData: true })
+		}
+
+		return function(fn, args) {
+			Q.push([fn, args]) === 1 && schedule()
+		}
+	})()
+
+	// Polyfill for ES6 promises
+	if (!(global.Promise && Promise.resolve && Promise.reject && Promise.all && Promise.race && (function() {
+		var resolve;
+		new Promise(function(r) { resolve = r })
+		return classOf(resolve) === Function
+	})())) global.Promise = (function() {
+
+		function resolve(promise, value) {
+			// TODO: remove !
+			if (promise === value || !handleThenable(promise, value)) fulfill(promise, value)
+		}
+
+		function fulfill(promise, value) {
+			if (promise._state === undefined) {
+				promise._state = 0
+				promise._detail = value
+
+				nextTick(publishFulfillment, [promise])
+			}
+		}
+
+		function reject(promise, reason) {
+			if (promise._state === undefined) {
+				promise._state = 0
+				promise._detail = reason
+
+				nextTick(publishRejection, [promise])
+			}
+		}
+
+		function publishFulfillment(promise) {
+			publish(promise, promise._state = 1)
+		}
+
+		function publishRejection(promise) {
+			publish(promise, promise._state = 2)
+		}
+
+
+		function invokeResolver(resolver, promise) {
+			function ok(value) { resolve(promise, value) }
+			function ng(reason) { reject(promise, reason) }
+
+			try { resolver(ok, ng) }
+			catch(e) { ng(e) }
+		}
+
+		function invokeCallback(settled, promise, callback, detail) {
+			var hasCallback = classOf(callback) === Function, value, error
+
+			if (hasCallback) {
+				try { value = callback(detail) }
+				catch(e) { error = e }
+			} else value = detail
+
+			if (!handleThenable(promise, value)) { // TODO: remove !
+				if (error) reject(promise, error)
+				else if (hasCallback || settled === 1) resolve(promise, value)
+				else if (settled === 2) reject(promise, value)
+			}
+		}
+
+		function handleThenable(promise, value) {
+			var resolved
+
+			try {
+				if (classOf(value) === Function || isA(value, Object)) {
+					if (classOf(value.then) === Function) return value.then.call(value, function(val) {
+						return resolved || (value !== val ? resolve : fulfill)(promise, val), resolved = true
+					}, function(val) {
+						return resolved || reject(promise, val), resolved = true
+					}), true
+				}
+			} catch (error) {
+				return resolved || reject(promise, error), true
+			}
+		}
+
+		function subscribe(promise, child, ok, ng) {
+			promise._subscribers = promise._subscribers.concat([child, ok, ng])
+		}
+
+		function publish(promise, state) {
+			for (var subscribers = promise._subscribers, detail = promise._detail, i=0, l=subscribers.length>>>0; i<l; i+=3)
+				invokeCallback(state, subscribers[i], subscribers[i + state], detail)
+
+			promise._subscribers = []
+		}
+
+		function P(resolver) {
+			this._subscribers = []
+			invokeResolver(resolver, this)
+		}
+
+		P.prototype = {
+			constructor: P,
+
+			_state: undefined,
+			_detail: undefined,
+
+			then: function(ok, ng) {
+				var promise = this, thenPromise = new P(function() {})
+
+				if (promise._state) nextTick(invokeCallback, [promise._state, thenPromise, arguments[promise._state - 1], promise._detail])
+				else subscribe(promise, thenPromise, ok, ng)
+
+				return thenPromise
+			},
+
+			'catch': function(ng) {
+				return this.then(null, ng)
+			}
+		}
+
+		P.all = function(promises) {
+			return new P(function(ok, ng) {
+				function resolver(index) {
+					return function(value) { resolveAll(index, value) }
+				}
+
+				function resolveAll(index, value) {
+					results[index] = value
+					if (!--remaining) ok(results)
+				}
+
+				var results = [], length = remaining = promises.length >>> 0, p, i
+				if (!remaining) ok([])
+
+				for (i = -1; p = promises[++i], i < length;)
+					if (classOf(p && p.then) === Function) p.then(resolver(i), ng)
+					else resolveAll(i, p)
+			})
+		}
+
+		P.race = function(promises) {
+			return new P(function(ok, ng) {
+				for (var p, i = -1, l = promises.length >>> 0; p = promises[++i], i < l;)
+					if (classOf(p && p.then) === Function) p.then(ok, ng)
+					else ok(p)
+			})
+		}
+		P.resolve = function(v) {
+			return classOf(v) === P ? v : new P(function(ok) { ok(v) })
+		}
+
+		P.reject = function(r) {
+			return new P(function (ok, ng) { ng(r) })
+		}
+
+		return P
+	})()
+
+
+
+
+
+
+	// DOM
+	var ElementPrototype_ = Element.prototype,
+		prefixes = ['ms', 'webkit', 'moz', 'o'],
+		prefixCount = prefixes.length >>> 0,
+		matches = 'matches',
+		matchesSelector = 'matchesSelector'
+
+	;(function(autoPrefixItems, autoPrefixItem) {
+		while(autoPrefixItem = autoPrefixItems.pop()) {
+			for (var
+				obj = autoPrefixItem[0],
+				name = autoPrefixItem[1],
+				cap = capitalize(name),
+				i = 0;
+				i < prefixCount && !obj[name];
+				obj[name] = obj[prefixes[i++] + cap]
+			);
+		}
+	})([
+		[ElementPrototype_, matchesSelector],
+		[global, 'requestAnimationFrame'],
+		[global, 'cancelAnimationFrame'],
+	])
+
+	ElementPrototype_[matches] = ElementPrototype_[matches] || ElementPrototype_[matchesSelector]
+
+	function bind_unbind_(t, e, fn, c) {
+		var a = e.split(' '),
+			l = a.length >>> 0
+		while (l) c.call(t, a[--l], fn, false)
+	}
+
+	//function bind(target, )
+
+
+
+
+
+
+	function Duh(o) {
+		if (!this) return createInstance(Duh, arguments)
+
+		if (isA(o, Function)) {
+			console.log('function', o)
+		}
+	}
+
+
+
+
+	function ready(fn) {
+		document.addEventListener("DOMContentLoaded", fn)
+	}
+
+
+	function Paging(parent) {
+		if (!this) return new Paging(parent)
+
+		this.parent = parent
+		this.setupEvents()
+	}
+
+	Paging.prototype = {
+		constructor: Paging,
+		setupEvents: function() {
+			var o = this, parent = o.parent
+			document.addEventListener('scroll', o)
+			document.addEventListener('resize', o)
+			document.addEventListener('load', o)
+			parent.addEventListener('scroll', o)
+			parent.addEventListener('resize', o)
+		},
+		handleEvent: function(event) {
+			switch(event.type) {
+				case 'scroll':
+				case 'resize':
+				case 'load':
+					this.updateContentThrottled(event)
+					break
+			}
+		},
+		updateContent: function(event) {
+			console.log('update')
+		},
+	}
+	Paging.prototype.updateContentThrottled = throttle(Paging.prototype.updateContent, 1000)
+
+
+	ready(function() {
+		new Paging(document.getElementById('list'))
+	});
+})(window, document, Object);
+</script>
+</body>
+</html>
+
+
+list.getBoundingClientRect()
