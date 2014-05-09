@@ -12,7 +12,7 @@ then
 	echo "Found CUDA at $CUDA_PATH"
 	for L in gcc g++
 	do
-		for V in 6 5 4 3 2
+		for V in 8 7 6 5 4 3 2
 		do
 			for G in ${L}-mp-4.$V ${L}-4.$V ${L}-4$V ${L}4$V llvm-${L}-4.$V
 			do
@@ -22,9 +22,9 @@ then
 		done
 		if ! which $G >/dev/null 2>&1
 		then
-			echo "No suitable compiler found. Installing GCC 4.6..."
-			sudo port install gcc46
-			V=6
+			echo "No suitable compiler found. Installing GCC 4.8..."
+			sudo port install gcc48
+			V=8
 			G=${L}-mp-4.$V
 		fi
 		if [ "gcc" == "$L" ]
