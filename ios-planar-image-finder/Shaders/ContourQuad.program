@@ -1,0 +1,19 @@
+[vertex shader]
+
+attribute vec4 position;
+attribute vec4 color;
+varying vec4 colorVarying;
+
+void main() {
+	gl_Position = position;
+	colorVarying = color;
+}
+
+[fragment shader]
+precision mediump float;
+varying lowp vec4 colorVarying;
+
+void main() {
+	gl_FragColor = vec4(colorVarying.r, colorVarying.g, colorVarying.b, 0.5);
+}
+

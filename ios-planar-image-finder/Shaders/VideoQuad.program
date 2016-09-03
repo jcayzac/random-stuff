@@ -1,0 +1,46 @@
+[vertex shader]
+
+attribute vec4 position;
+attribute vec2 uv;
+varying vec2 uvVarying;
+
+void main() {
+	gl_Position = position;
+	uvVarying = uv;
+}
+
+[fragment shader]
+//#extension GL_OES_standard_derivatives : enable
+precision mediump float;
+varying vec2 uvVarying;
+uniform sampler2D texture;
+
+const vec2 n = vec2(1.0/1024.0, 1.0/512.0);
+const vec4 luminance_vector = vec4(0.3, 0.59, 0.11, 0.0);
+
+void main(void) {
+    vec4 LD = texture2D(texture, uvVarying - n               );
+    vec4 LC = texture2D(texture, uvVarying + vec2(-n.x,  0.0));
+    vec4 LU = texture2D(texture, uvVarying + vec2(-n.x,  n.y));
+    vec4 CD = texture2D(texture, uvVarying + vec2( 0.0, -n.y));
+    vec4 CC = texture2D(texture, uvVarying                   );
+    vec4 CU = texture2D(texture, uvVarying + vec2( 0.0,  n.y));
+    vec4 RD = texture2D(texture, uvVarying + vec2( n.x, -n.y));
+    vec4 RC = texture2D(texture, uvVarying + vec2( n.x,  0.0));
+    vec4 RU = texture2D(texture, uvVarying + n               );
+
+    vec2 g = vec2(
+        dot(luminance_vector, RD - LD) +
+        2.0*dot(luminance_vector, RC - LC) +
+        dot(luminance_vector, RU - LU),
+        dot(luminance_vector, LD - LU) +
+        2.0*dot(luminance_vector, CD - CU) +
+        dot(luminance_vector, RD - RU)
+    );
+
+    float baseLum = dot(luminance_vector, CC);
+    //float len = max(baseLum, length(g));
+    // float len = length(g);
+    float len = clamp(length(g)/baseLum, 0.1, 10.0);
+    gl_FragColor = vec4(CC.rgb*len, 1.0);
+}
