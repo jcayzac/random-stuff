@@ -2,3 +2,11 @@ __scripts__/media/build-ffmpeg-from-source/.work
 ios-root/**
 !ios-root/bootstrap
 
+*.xcuserdatad
+*.xccheckout
+.DS_Store
+Build
+DerivedData
+xcuserdata
+project.xcworkspace
+
