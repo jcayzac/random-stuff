@@ -1,0 +1,34 @@
+
+ffmpeg -i input.vid -target ntsc-dvd tmp.mpg
+
+cat >tmp.xml <<EOT
+<subpictures>
+	<stream>
+		<textsub filename="input.srt" characterset="UTF-8"
+			fontsize="28.0" font="Trebuchet MS Bold.ttf"
+			horizontal-alignment="center" vertical-alignment="bottom"
+			left-margin="60" right-margin="60" top-margin="20" bottom-margin="30"
+			subtitle-fps="29.97"
+			movie-fps="29.97" movie-width="720" movie-height="480"
+			force="yes"
+		/>
+	</stream>
+</subpictures>
+EOT
+spumux -s0 -m dvd -P tmp.xml <tmp.mpg >tmp-subbed.mpg
+
+cat >tmp.xml <<EOT
+<dvdauthor dest="DVD">
+	<vmgm />
+	<titleset>
+		<titles>
+			<pgc>
+				<vob file="tmp-subbed.mpg" />
+			</pgc>
+		</titles>
+	</titleset>
+</dvdauthor>
+dvdauthor -x tmp.xml
+
+rm -rf tmp*
+

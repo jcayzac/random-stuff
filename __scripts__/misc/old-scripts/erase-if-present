@@ -1,0 +1,28 @@
+
+
+
+erase-if-present() {
+	declare F1="${1##*/}"
+	declare F2="/Volumes/LaCie/Archive/Photos/import-from-pcloud/Memories/$F1"
+
+	if [ -f "$F2" ]
+	then
+		declare $(stat -s "$1")
+		declare SZ1=$st_size
+		declare $(stat -s "$F2")
+		declare SZ2=$st_size
+
+		(( $SZ1 != $SZ2 )) || {
+			printf 'Trashing %s…\n' "$1"
+			trash -F "$1"
+		}
+	fi
+}
+
+check-dupes() {
+	export -f erase-if-present
+	xargs -0 -P $(sysctl -n hw.ncpu) -I {} \
+		bash -c -e -u -o pipefail 'erase-if-present "$@"' _ {} \
+		< <(set -f; find ${1+"$@"} -type f -print0)
+}
+

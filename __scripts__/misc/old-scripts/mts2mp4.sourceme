@@ -1,0 +1,49 @@
+# Convert a video from Ayako's camera to MP4
+# The original file is not deleted
+#
+# $1: original file
+mts2mp4() {
+	(
+		set -e -u -o pipefail
+		[ -f "$1" ]
+
+		local DEST="${1%.*}.mp4"
+
+		# Camera names the videos YYYY-MM-DDTHHMMSS+HHMM.nnnnn.MTS
+		[[ "${1##*/}" =~ ^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{6}\+[0-9]{4})\.[0-9]{5}\.MTS$ ]] || {
+			# Ignore non-matching filenames
+			return 0
+		}
+
+		# All streams are H.264 and AC3. Mux the video as-is, but re-encode the audio as AAC
+		ffmpeg -hide_banner -nostats -loglevel panic -i "$1" -c:v copy -c:a libfdk_aac -b:a 128k -metadata "creation_time=${BASH_REMATCH[1]}" "$DEST"
+
+		# Copy remaining relevant EXIF tags (creation date was already set by ffmpeg above)
+		exiftool >&- 2>&- -q -s \
+     '-Make>Make' \
+     '-Model>Model' \
+     '-ShutterSpeed>ShutterSpeed' \
+     '-ShutterSpeed>ExposureTime' \
+     -TagsFromFile "$1" "$DEST"
+		rm -f "${DEST}_original"
+		touch -r "$1" "$DEST"
+
+		printf '✅ Converted %s\n' "$DEST"
+	) || {
+		printf '❌ Could not convert %s\n' "$1"
+		false
+	}
+}
+
+# Convert videos from Ayako's camera to MP4
+# Original files are not deleted
+#
+# $1: folders
+mts2mp4s() {
+	(
+		set -e -u -o pipefail
+		export -f mts2mp4
+		xargs -0 -P $(sysctl -n hw.ncpu) -I {} bash -c 'mts2mp4 "$@"' _ {} < <(find ${1+"$@"} -iname \*.MTS -print0)
+	)
+}
+
